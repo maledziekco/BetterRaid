@@ -38,7 +38,7 @@ public class RaidListener implements Listener {
             for (int i = 0; i < extraMultiplier; i++) {
                 if (loc.getWorld() != null) {
                     Location spawnLoc = loc.clone().add((Math.random() - 0.5) * 3, 0, (Math.random() - 0.5) * 3);
-                    EntityType spawnType = getMobTypeForWave(waveNumber);
+                    EntityType spawnType = getMobTypeForWave(waveNumber, raider.getType());
 
                     if (loc.getWorld().spawnEntity(spawnLoc, spawnType) instanceof LivingEntity extraMob) {
                         applyCustomizations(extraMob);
@@ -48,29 +48,36 @@ public class RaidListener implements Listener {
         }
     }
 
-    private EntityType getMobTypeForWave(int wave) {
+    private EntityType getMobTypeForWave(int wave, EntityType fallbackType) {
         int roll = random.nextInt(100);
+        int currentSum = 0;
 
-        if (wave <= 2) {
-            if (roll < 60) return EntityType.PILLAGER;
-            return EntityType.VINDICATOR;
-        } else if (wave <= 4) {
-            if (roll < 40) return EntityType.PILLAGER;
-            if (roll < 70) return EntityType.VINDICATOR;
-            if (roll < 90) return EntityType.WITCH;
-            return EntityType.ILLUSIONER;
-        } else {
-            if (roll < 25) return EntityType.VINDICATOR;
-            if (roll < 50) return EntityType.WITCH;
-            if (roll < 75) return EntityType.EVOKER;
-            return EntityType.RAVAGER;
+        // Sprawdzamy po kolei szanse dla każdego moba z configu
+        EntityType[] possibleTypes = {
+            EntityType.PILLAGER,
+            EntityType.VINDICATOR,
+            EntityType.ILLUSIONER,
+            EntityType.WITCH,
+            EntityType.EVOKER,
+            EntityType.RAVAGER
+        };
+
+        for (EntityType type : possibleTypes) {
+            int chance = plugin.getConfigManager().getSpawnChance(wave, type);
+            if (chance > 0) {
+                currentSum += chance;
+                if (roll < currentSum) {
+                    return type;
+                }
+            }
         }
+
+        return fallbackType; // Awaryjnie zwraca domyślny typ
     }
 
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof LivingEntity damager && isRaidMob(damager)) {
-            // Pobieramy dedykowany mnożnik obrażeń dla konkretnego typu moba z configu
             double specificMultiplier = plugin.getConfigManager().getMobDamageMultiplier(damager.getType());
             event.setDamage(event.getDamage() * specificMultiplier);
         }

@@ -39,7 +39,6 @@ public class ConfigManager {
         return 24.0;
     }
 
-    // Nowa metoda: Pobiera indywidualny mnożnik obrażeń dla danego moba
     public double getMobDamageMultiplier(EntityType type) {
         FileConfiguration config = plugin.getConfig();
         String path = "mobs-damage-multiplier." + type.name();
@@ -47,8 +46,24 @@ public class ConfigManager {
         if (config.contains(path)) {
             return config.getDouble(path);
         }
-        // Jeśli brak wpisu, pobiera ogólny damage-multiplier z pliku config
         return getDamageMultiplier();
+    }
+
+    // Pobiera szansę procentową z configu dla danego moba i fali
+    public int getSpawnChance(int wave, EntityType type) {
+        FileConfiguration config = plugin.getConfig();
+        String waveGroup;
+
+        if (wave <= 2) {
+            waveGroup = "waves-1-2";
+        } else if (wave <= 4) {
+            waveGroup = "waves-3-4";
+        } else {
+            waveGroup = "waves-5-plus";
+        }
+
+        String path = "wave-spawn-chances." + waveGroup + "." + type.name();
+        return config.getInt(path, 0);
     }
 
     public String getPrefix() {

@@ -3,32 +3,59 @@
 # ==========================================
 
 raid:
-  health-multiplier: 1.50   # Globalny mnożnik bazowego HP
-  damage-multiplier: 2.50   # Domyślny mnożnik obrażeń (jeśli mob nie ma wpisu poniżej)
-  extra-mobs-multiplier: 2  # Dwa dodatkowe moby na każdy spawn
+  health-multiplier: 1.50   
+  damage-multiplier: 2.50   
+  extra-mobs-multiplier:  2  
 
 # Bazowa ilość punktów życia (HP) dla każdego typu moba
 mobs-base-hp:
   RAVAGER: 100.0     
   EVOKER: 40.0       
-  VINDICATOR: 35.5   
+  VINDICATOR: 35.0   
   ILLUSIONER: 32.0   
   WITCH: 30.0        
   PILLAGER: 24.0     
 
 # Indywidualny mnożnik obrażeń dla każdego moba
 mobs-damage-multiplier:
-  RAVAGER: 3.0       # Dewastator bije mocno
+  RAVAGER: 3.0       
   EVOKER: 2.0        
   VINDICATOR: 2.5    
   ILLUSIONER: 2.0    
   WITCH: 1.5         
-  PILLAGER: 4.0      # Kusznik może teraz bić bardzo mocno!
+  PILLAGER: 4.0      
 
+# Procentowe szanse na spawnowanie konkretnych mobów w zależności od fali
+wave-spawn-chances:
+  # Fale 1 i 2 (Lekkie)
+  waves-1-2:
+    PILLAGER: 60
+    VINDICATOR: 40
+    ILLUSIONER: 0
+    WITCH: 0
+    EVOKER: 0
+    RAVAGER: 0
+    
+  # Fale 3 i 4 (Średnie)
+  waves-3-4:
+    PILLAGER: 30
+    VINDICATOR: 30
+    ILLUSIONER: 20
+    WITCH: 20
+    EVOKER: 0
+    RAVAGER: 0
+    
+  # Fale 5+ (Trudne / Finałowe)
+  waves-5-plus:
+    PILLAGER: 10
+    VINDICATOR: 20
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 20
+    RAVAGER: 20
 messages:
   prefix: "&8[&cBetterRaid&8] "
   no-permission: "&cBrak uprawnień!"
   config-reloaded: "&aPrzeładowano config!"
   raid-started: "&aRozpoczęto rajd z potężnymi falami!"
-  boss-spawned: "&cZespawnowano Bossa!"
-  boss-defeated: "&aBoss został pokonany!"
+  
