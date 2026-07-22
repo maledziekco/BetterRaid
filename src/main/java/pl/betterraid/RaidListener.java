@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,10 +14,12 @@ import org.bukkit.event.raid.RaidSpawnWaveEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class RaidListener implements Listener {
 
     private final BetterRaid plugin;
+    private final Random random = new Random();
 
     public RaidListener(BetterRaid plugin) {
         this.plugin = plugin;
@@ -25,87 +28,120 @@ public class RaidListener implements Listener {
     @EventHandler
     public void onWaveSpawn(RaidSpawnWaveEvent event) {
         List<Raider> originalRaiders = new ArrayList<>(event.getRaiders());
-        int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier(); // Domyślnie 2 (+200%)
+        int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier();
+        
+        // Pobieramy numer bieżącej fali (np. 1, 2, 3...)
+        int waveNumber = event.getRaid().getBadOmenLevel(); // lub estymacja fali z rajdu
 
         for (Raider raider : originalRaiders) {
             applyCustomizations(raider);
 
             Location loc = raider.getLocation();
-            EntityType type = raider.getType();
 
-            // Spawnowanie dodatkowych mobów (+200%)
+            // Generujemy dodatkowe moby na podstawie NUMERU FALI
             for (int i = 0; i < extraMultiplier; i++) {
                 if (loc.getWorld() != null) {
-                    Location spawnLoc = loc.clone().add((Math.random() - 0.5) * 2, 0, (Math.random() - 0.5) * 2);
-                    Raider extraRaider = (Raider) loc.getWorld().spawnEntity(spawnLoc, type);
-                    applyCustomizations(extraRaider);
+                    Location spawnLoc = loc.clone().add((Math.random() - 0.5) * 3, 0, (Math.random() - 0.5) * 3);
+                    
+                    // Dobieramy typ moba pod konkretną falę!
+                    EntityType spawnType = getMobTypeForWave(waveNumber);
+
+                    if (loc.getWorld().spawnEntity(spawnLoc, spawnType) instanceof LivingEntity extraMob) {
+                        applyCustomizations(extraMob);
+                    }
                 }
             }
         }
     }
 
+    /**
+     * Zwraca typ moba dopasowany do trudności danej fali
+     */
+    private EntityType getMobTypeForWave(int wave) {
+        int roll = random.nextInt(100);
+
+        // FALA 1-2: Lekka piechota (Kusznicy + Siekacze)
+        if (wave <= 2) {
+            if (roll < 60) return EntityType.PILLAGER;
+            return EntityType.VINDICATOR;
+        } 
+        // FALA 3-4: Dołączają Czarownice i Iluzjoniści
+        else if (wave <= 4) {
+            if (roll < 40) return EntityType.PILLAGER;
+            if (roll < 70) return EntityType.VINDICATOR;
+            if (roll < 90) return EntityType.WITCH;
+            return EntityType.ILLUSIONER;
+        } 
+        // FALA 5+: Ciężka artyleria (Przywoływacze i Dewastatorzy)
+        else {
+            if (roll < 25) return EntityType.VINDICATOR;
+            if (roll < 50) return EntityType.WITCH;
+            if (roll < 75) return EntityType.EVOKER;
+            return EntityType.RAVAGER;
+        }
+    }
+
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        // Obrażenia zadawane przez raiderów
-        if (event.getDamager() instanceof Raider) {
+        if (event.getDamager() instanceof LivingEntity damager && isRaidMob(damager)) {
             double damageMultiplier = plugin.getConfigManager().getDamageMultiplier();
             event.setDamage(event.getDamage() * damageMultiplier);
         }
 
-        // Aktualizacja HP nad głową po otrzymaniu obrażeń
-        if (event.getEntity() instanceof Raider raider) {
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> updateHealthTag(raider), 1L);
+        if (event.getEntity() instanceof LivingEntity entity && isRaidMob(entity)) {
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> updateHealthTag(entity), 1L);
         }
     }
 
-    private void applyCustomizations(Raider raider) {
+    private boolean isRaidMob(LivingEntity entity) {
+        return entity instanceof Raider || entity.getType() == EntityType.WITCH;
+    }
+
+    private void applyCustomizations(LivingEntity entity) {
         double healthMultiplier = plugin.getConfigManager().getHealthMultiplier();
-        double baseHealth = getCustomMaxHealthForType(raider.getType());
+        double baseHealth = getCustomMaxHealthForType(entity.getType());
         double newMaxHealth = baseHealth * healthMultiplier;
 
-        AttributeInstance maxHealthAttr = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHealthAttr != null) {
             maxHealthAttr.setBaseValue(newMaxHealth);
-            raider.setHealth(newMaxHealth);
+            entity.setHealth(newMaxHealth);
         }
 
-        updateHealthTag(raider);
-        raider.setCustomNameVisible(true);
+        updateHealthTag(entity);
+        entity.setCustomNameVisible(true);
     }
 
-    private void updateHealthTag(Raider raider) {
-        if (raider.isDead() || !raider.isValid()) return;
+    private void updateHealthTag(LivingEntity entity) {
+        if (entity.isDead() || !entity.isValid()) return;
 
-        String baseName = getCustomNameForType(raider.getType());
-        int currentHp = (int) Math.max(0, raider.getHealth());
+        String baseName = getCustomNameForType(entity.getType());
+        int currentHp = (int) Math.max(0, entity.getHealth());
 
-        AttributeInstance maxHealthAttr = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         int maxHp = maxHealthAttr != null ? (int) maxHealthAttr.getValue() : currentHp;
 
         String healthTag = colorize(" &7[" + getHealthColor(currentHp, maxHp) + currentHp + "&7/&a" + maxHp + " HP&7]");
-        raider.setCustomName(baseName + healthTag);
+        entity.setCustomName(baseName + healthTag);
     }
 
-    /**
-     * Dedykowana ilość punktów życia (HP) dla każdego moba z osobna
-     */
     private double getCustomMaxHealthForType(EntityType type) {
         return switch (type) {
-            case RAVAGER -> 100.0;     // Dewastator — potężny czołg (100 HP)
-            case EVOKER -> 40.0;       // Przywoływacz — mag (40 HP)
-            case VINDICATOR -> 35.0;   // Siekacz — silny wojownik (35 HP)
-            case WITCH -> 30.0;        // Czarownica (30 HP)
-            case PILLAGER -> 24.0;     // Kusznik — standardowa piechota (24 HP)
-            case ILLUSIONER -> 32.0;   // Iluzjonista (32 HP)
+            case RAVAGER -> 100.0;
+            case EVOKER -> 40.0;
+            case VINDICATOR -> 35.0;
+            case WITCH -> 30.0;
+            case PILLAGER -> 24.0;
+            case ILLUSIONER -> 32.0;
             default -> 24.0;
         };
     }
 
     private String getHealthColor(int current, int max) {
         double ratio = (double) current / max;
-        if (ratio > 0.6) return "&a"; // Zielony dla > 60%
-        if (ratio > 0.3) return "&e"; // Żółty dla > 30%
-        return "&c";                 // Czerwony dla niskiego HP
+        if (ratio > 0.6) return "&a";
+        if (ratio > 0.3) return "&e";
+        return "&c";
     }
 
     private String getCustomNameForType(EntityType type) {
