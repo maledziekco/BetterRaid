@@ -1,3 +1,5 @@
+ src/main/java/pl/betterraid/BetterRaid.java
+
 package pl.betterraid;
 
 import org.bukkit.plugin.java.JavaPlugin;
