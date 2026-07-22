@@ -1,6 +1,5 @@
 package pl.betterraid;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -74,10 +73,6 @@ public class RaidListener implements Listener {
             double damageMultiplier = plugin.getConfigManager().getDamageMultiplier();
             event.setDamage(event.getDamage() * damageMultiplier);
         }
-
-        if (event.getEntity() instanceof LivingEntity entity && isRaidMob(entity)) {
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> updateHealthTag(entity), 1L);
-        }
     }
 
     private boolean isRaidMob(LivingEntity entity) {
@@ -85,7 +80,7 @@ public class RaidListener implements Listener {
     }
 
     private void applyCustomizations(LivingEntity entity) {
-        // Pobieramy bazowe HP z pliku config.yml
+        // Pobieramy bazowe HP z pliku config.yml oraz globalny mnożnik
         double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
         double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
         double finalMaxHealth = baseHealth * globalMultiplier;
@@ -96,43 +91,8 @@ public class RaidListener implements Listener {
             entity.setHealth(finalMaxHealth);
         }
 
-        updateHealthTag(entity);
-        entity.setCustomNameVisible(true);
-    }
-
-    private void updateHealthTag(LivingEntity entity) {
-        if (entity.isDead() || !entity.isValid()) return;
-
-        String baseName = getCustomNameForType(entity.getType());
-        int currentHp = (int) Math.max(0, entity.getHealth());
-
-        AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-        int maxHp = maxHealthAttr != null ? (int) maxHealthAttr.getValue() : currentHp;
-
-        String healthTag = colorize(" &7[" + getHealthColor(currentHp, maxHp) + currentHp + "&7/&a" + maxHp + " HP&7]");
-        entity.setCustomName(baseName + healthTag);
-    }
-
-    private String getHealthColor(int current, int max) {
-        double ratio = (double) current / max;
-        if (ratio > 0.6) return "&a";
-        if (ratio > 0.3) return "&e";
-        return "&c";
-    }
-
-    private String getCustomNameForType(EntityType type) {
-        return switch (type) {
-            case PILLAGER -> colorize("&cKusznik Najazdu");
-            case VINDICATOR -> colorize("&4Siekacz Najazdu");
-            case EVOKER -> colorize("&5Przywoływacz Najazdu");
-            case RAVAGER -> colorize("&6Dewastator Najazdu");
-            case WITCH -> colorize("&2Czarownica Najazdu");
-            case ILLUSIONER -> colorize("&9Iluzjonista Najazdu");
-            default -> colorize("&cWojownik Najazdu");
-        };
-    }
-
-    private String colorize(String text) {
-        return ChatColor.translateAlternateColorCodes('&', text);
+        // Nazwa i pasek zdrowia nad głową są całkowicie wyłączone
+        entity.setCustomName(null);
+        entity.setCustomNameVisible(false);
     }
 }
