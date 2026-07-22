@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
+import org.bukkit.event.raid.RaidTriggerEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,34 @@ public class RaidListener implements Listener {
 
     public RaidListener(BetterRaid plugin) {
         this.plugin = plugin;
+    }
+
+    // Ustawianie liczby fal na podstawie poziomu Bad Omen zgodnie z Twoją tabelą
+    @EventHandler
+    public void onRaidTrigger(RaidTriggerEvent event) {
+        int badOmenLevel = event.getRaid().getBadOmenLevel();
+        int targetWaves;
+
+        switch (badOmenLevel) {
+            case 1:
+                targetWaves = 4;
+                break;
+            case 2:
+                targetWaves = 6;
+                break;
+            case 3:
+                targetWaves = 8;
+                break;
+            case 4:
+                targetWaves = 10;
+                break;
+            default:
+                // Dla poziomu 5 i wyższych ustawiamy 14 fal (lub więcej, jeśli podasz wyższy poziom)
+                targetWaves = badOmenLevel >= 5 ? 14 : 4;
+                break;
+        }
+
+        event.getRaid().setTotalWaves(targetWaves);
     }
 
     @EventHandler
@@ -97,7 +126,6 @@ public class RaidListener implements Listener {
             entity.setHealth(finalMaxHealth);
         }
 
-        // Nazwy i paski zdrowia nad głową całkowicie wyłączone
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
     }
