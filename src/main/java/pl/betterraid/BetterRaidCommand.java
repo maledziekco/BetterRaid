@@ -54,3 +54,14 @@ public class BetterRaidCommand implements CommandExecutor, TabCompleter {
         return completions;
     }
 }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+        if (args.length == 1) {
+            completions.add("reload");
+            completions.add("spawnboss");
+        }
+        return completions;
+    }
+}

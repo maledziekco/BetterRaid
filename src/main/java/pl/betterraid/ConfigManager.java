@@ -30,3 +30,4 @@ public class ConfigManager {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 }
+}

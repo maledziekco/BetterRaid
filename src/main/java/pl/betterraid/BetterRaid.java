@@ -11,18 +11,15 @@ public class BetterRaid extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Inicjalizacja managerow
         this.configManager = new ConfigManager(this);
         this.raidManager = new RaidManager(this);
         this.bossManager = new BossManager(this);
         this.rewardManager = new RewardManager(this);
 
-        // Rejestracja komendy
         if (getCommand("raid") != null) {
             getCommand("raid").setExecutor(new BetterRaidCommand(this));
         }
 
-        // Rejestracja listenera
         getServer().getPluginManager().registerEvents(new RaidListener(this), this);
 
         getLogger().info("Plugin BetterRaid zostal pomyslnie wlaczony!");

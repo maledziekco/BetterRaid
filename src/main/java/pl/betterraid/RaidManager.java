@@ -1,8 +1,7 @@
-package pl.betterraid.raid;
-
-import pl.betterraid.BetterRaid;
+package pl.betterraid;
 
 public class RaidManager {
+
     private final BetterRaid plugin;
 
     public RaidManager(BetterRaid plugin) {

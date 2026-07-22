@@ -14,6 +14,6 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        // Logika zdarzeń (np. zabicie bossa)
+        // Logika zdarzen
     }
 }
