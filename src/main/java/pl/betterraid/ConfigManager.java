@@ -52,7 +52,8 @@ public class ConfigManager {
         return colorize(plugin.getConfig().getString("messages.config-reloaded", "&aPrzeładowano config!"));
     }
 
-    private String colorize(String text) {
+    // Zmienione na public, aby inne klasy (np. BetterRaidCommand) mogły z niej korzystać
+    public String colorize(String text) {
         if (text == null) return "";
         return ChatColor.translateAlternateColorCodes('&', text);
     }
