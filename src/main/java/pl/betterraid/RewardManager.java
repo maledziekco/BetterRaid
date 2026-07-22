@@ -1,11 +1,7 @@
-package pl.betterraid.config;
+package pl.betterraid;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
-import pl.betterraid.BetterRaid;
-
-import java.util.List;
-import java.util.Map;
 
 public class ConfigManager {
 
