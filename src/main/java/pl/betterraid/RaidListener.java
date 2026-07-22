@@ -37,9 +37,8 @@ public class RaidListener implements Listener {
             default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
         }
 
-        // event.getRaid().getSpawnedGroups() zwraca aktualną falę rajdu
+        // Jeśli aktualna fala przekracza limit, przerywamy, nie niszcząc rajdu przez clear()
         if (event.getRaid().getSpawnedGroups() > maxWaves) {
-            event.getRaiders().clear();
             return;
         }
 
@@ -104,17 +103,34 @@ public class RaidListener implements Listener {
     }
 
     private void applyCustomizations(LivingEntity entity) {
-        double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
-        double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
-        double finalMaxHealth = baseHealth * globalMultiplier;
+        // Opóźnienie 1 ticka zapobiega nadpisywaniu HP przez fabryczny silnik rajdu Minecrafta
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (entity == null || !entity.isValid()) return;
 
-        AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-        if (maxHealthAttr != null) {
-            maxHealthAttr.setBaseValue(finalMaxHealth);
-            entity.setHealth(finalMaxHealth);
-        }
+            double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
+            double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
+            double finalMaxHealth = baseHealth * globalMultiplier;
 
-        entity.setCustomName(null);
-        entity.setCustomNameVisible(false);
+            // Bezpieczne pobieranie atrybutu HP dla różnych wersji serwera
+            Attribute attrMaxHealth = null;
+            try {
+                attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
+            } catch (IllegalArgumentException e) {
+                try {
+                    attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
+                } catch (IllegalArgumentException ignored) {}
+            }
+
+            if (attrMaxHealth != null) {
+                AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
+                if (maxHealthAttr != null) {
+                    maxHealthAttr.setBaseValue(finalMaxHealth);
+                    entity.setHealth(finalMaxHealth);
+                }
+            }
+
+            entity.setCustomName(null);
+            entity.setCustomNameVisible(false);
+        }, 1L);
     }
 }
