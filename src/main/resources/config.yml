@@ -6,7 +6,7 @@ raid:
   health-multiplier: 1.50   # 50% więcej życia dla mobów
   damage-multiplier: 2.50   # Moby biją o 150% mocniej (2.5x silniejsze ciosy!)
   extra-mobs-multiplier: 2  # Dwa dodatkowe moby na każdy spawn (+200% więcej mobów!)
-
+  health-multiplier: 2.0  # Np. 2.0 podwoi punkty życia mobów z rajdu
 elites:
   spawn-chance: 0.30
   helmet: "DIAMOND_HELMET"
