@@ -1,11 +1,10 @@
-package pl.betterraid.boss;
+package pl.betterraid;
 
-import pl.betterraid.BetterRaid;
+public class RewardManager {
 
-public class BossManager {
     private final BetterRaid plugin;
 
-    public BossManager(BetterRaid plugin) {
+    public RewardManager(BetterRaid plugin) {
         this.plugin = plugin;
     }
 }
