@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -138,18 +139,29 @@ public class RaidListener implements Listener {
             }
         }
 
-        // Wymuszenie AGRO (Atakowanie najbliższego gracza w promieniu 32 bloków)
-        if (entity instanceof Mob mob) {
-            Player target = mob.getWorld().getPlayers().stream()
-                    .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
-                    .orElse(null);
-
-            if (target != null && target.getLocation().distanceSquared(mob.getLocation()) <= 1024) {
-                mob.setTarget(target);
-            }
-        }
-
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
+
+        // Agresywne wymuszanie agro co 1 sekundę (20 ticków), aby sztuczna inteligencja rajdu nie nadpisywała celu
+        if (entity instanceof Mob mob) {
+            new BukkitRunnable() {
+                @Override
+                void run() {
+                    if (!mob.isValid() || mob.isDead()) {
+                        cancel();
+                        return;
+                    }
+
+                    // Znajdź najbliższego gracza w promieniu 48 bloków
+                    Player target = mob.getWorld().getPlayers().stream()
+                            .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
+                            .orElse(null);
+
+                    if (target != null && target.getLocation().distanceSquared(mob.getLocation()) <= 2304) {
+                        mob.setTarget(target);
+                    }
+                }
+            }.runTaskTimer(plugin, 0L, 20L);
+        }
     }
 }
