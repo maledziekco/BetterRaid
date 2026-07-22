@@ -11,20 +11,18 @@ public class BetterRaid extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // 1. Inicjalizacja konfiguracji
+        // Inicjalizacja managerow
         this.configManager = new ConfigManager(this);
-
-        // 2. Inicjalizacja managerów
         this.raidManager = new RaidManager(this);
         this.bossManager = new BossManager(this);
         this.rewardManager = new RewardManager(this);
 
-        // 3. Rejestracja komend
+        // Rejestracja komendy
         if (getCommand("raid") != null) {
-           getCommand("raid").setExecutor(new BetterRaidCommand(this));
+            getCommand("raid").setExecutor(new BetterRaidCommand(this));
         }
 
-        // 4. Rejestracja listenerów (eventów)
+        // Rejestracja listenera
         getServer().getPluginManager().registerEvents(new RaidListener(this), this);
 
         getLogger().info("Plugin BetterRaid zostal pomyslnie wlaczony!");
@@ -35,20 +33,8 @@ public class BetterRaid extends JavaPlugin {
         getLogger().info("Plugin BetterRaid zostal wylaczony.");
     }
 
-    // Gettery do managerów
-    public ConfigManager getConfigManager() {
-        return configManager;
-    }
-
-    public RaidManager getRaidManager() {
-        return raidManager;
-    }
-
-    public BossManager getBossManager() {
-        return bossManager;
-    }
-
-    public RewardManager getRewardManager() {
-        return rewardManager;
-    }
+    public ConfigManager getConfigManager() { return configManager; }
+    public RaidManager getRaidManager() { return raidManager; }
+    public BossManager getBossManager() { return bossManager; }
+    public RewardManager getRewardManager() { return rewardManager; }
 }
