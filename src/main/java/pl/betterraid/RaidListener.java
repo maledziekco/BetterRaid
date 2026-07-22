@@ -142,17 +142,16 @@ public class RaidListener implements Listener {
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
 
-        // Agresywne wymuszanie agro co 1 sekundę (20 ticków), aby sztuczna inteligencja rajdu nie nadpisywała celu
+        // Agresywne wymuszanie agro co 1 sekundę (20 ticków)
         if (entity instanceof Mob mob) {
             new BukkitRunnable() {
                 @Override
-                void run() {
+                public void run() {
                     if (!mob.isValid() || mob.isDead()) {
                         cancel();
                         return;
                     }
 
-                    // Znajdź najbliższego gracza w promieniu 48 bloków
                     Player target = mob.getWorld().getPlayers().stream()
                             .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
                             .orElse(null);
