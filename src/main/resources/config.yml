@@ -1,6 +1,6 @@
 # ==========================================
-#         BetterRaid - Konfiguracja
-#             Autor: maledziecko
+#        BetterRaid - Konfiguracja
+#            Autor: maledziecko
 # ==========================================
 
 author: "maledziecko"
@@ -21,13 +21,14 @@ mobs-base-hp:
 
 # Indywidualny mnożnik obrażeń dla każdego moba
 mobs-damage-multiplier:
- RAVAGER: 3.0
+  RAVAGER: 3.0
   EVOKER: 3.0
   VINDICATOR: 2.5
   ILLUSIONER: 2.0
   WITCH: 1.5
   PILLAGER: 5.0
-# Procentowe szanse na spawnowanie konkretnych mobów dla każdej z 10 fal (Suma w każdej fali powinna wynosić 100)
+
+# Procentowe szanse na spawnowanie konkretnych mobów dla każdej fali (Suma w każdej fali powinna wynosić 100)
 wave-spawn-chances:
   wave-1:
     PILLAGER: 70
@@ -127,6 +128,7 @@ wave-spawn-chances:
     WITCH: 10
     EVOKER: 50
     RAVAGER: 30
+
 messages:
   prefix: "&8[&cBetterRaid&8] "
   no-permission: "&cBrak uprawnień!"
