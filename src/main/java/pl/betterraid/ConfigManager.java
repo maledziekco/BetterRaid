@@ -9,6 +9,7 @@ public class ConfigManager {
 
     private double healthMultiplier;
     private double damageMultiplier;
+    private double extraMobsChance;
     private double eliteSpawnChance;
     private String eliteHelmet;
     private String eliteChestplate;
@@ -41,6 +42,7 @@ public class ConfigManager {
 
         this.healthMultiplier = config.getDouble("raid.health-multiplier", 1.30);
         this.damageMultiplier = config.getDouble("raid.damage-multiplier", 1.20);
+        this.extraMobsChance = config.getDouble("raid.extra-mobs-chance", 0.50);
 
         this.eliteSpawnChance = config.getDouble("elites.spawn-chance", 0.25);
         this.eliteHelmet = config.getString("elites.helmet", "DIAMOND_HELMET");
@@ -71,6 +73,7 @@ public class ConfigManager {
     // Getters
     public double getHealthMultiplier() { return healthMultiplier; }
     public double getDamageMultiplier() { return damageMultiplier; }
+    public double getExtraMobsChance() { return extraMobsChance; }
     public double getEliteSpawnChance() { return eliteSpawnChance; }
     public String getEliteHelmet() { return eliteHelmet; }
     public String getEliteChestplate() { return eliteChestplate; }
