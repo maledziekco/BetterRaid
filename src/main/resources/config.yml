@@ -5,6 +5,7 @@
 raid:
   health-multiplier: 1.30
   damage-multiplier: 1.20
+  extra-mobs-chance: 0.50  # <-- Ustawi na sztywno +50% mobów w rajdzie
 
 elites:
   spawn-chance: 0.25
