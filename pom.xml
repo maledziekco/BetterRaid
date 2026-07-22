@@ -2,6 +2,7 @@ package pl.betterraid.raid;
 
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Raider;
 import org.bukkit.inventory.EntityEquipment;
@@ -20,12 +21,13 @@ public class RaidManager {
     }
 
     public void enhanceRaider(Raider raider) {
-        // Boost health
-        double healthMult = plugin.getConfigManager().getHealthMultiplier();
-        if (raider.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
-            double currentMax = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-            double newMax = currentMax * healthMult;
-            raider.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newMax);
+        // Boost health (używamy MAX_HEALTH zamiast GENERIC_MAX_HEALTH)
+        AttributeInstance healthAttribute = raider.getAttribute(Attribute.MAX_HEALTH);
+        if (healthAttribute != null) {
+            double healthMult = plugin.getConfigManager().getHealthMultiplier();
+            double newMax = healthAttribute.getBaseValue() * healthMult;
+            
+            healthAttribute.setBaseValue(newMax);
             raider.setHealth(newMax);
         }
 
@@ -38,6 +40,7 @@ public class RaidManager {
     private void makeElite(LivingEntity entity) {
         String prefix = plugin.getConfigManager().getElitePrefix();
         String currentName = entity.getCustomName() != null ? entity.getCustomName() : entity.getName();
+        
         entity.setCustomName(plugin.getConfigManager().colorize(prefix + currentName));
         entity.setCustomNameVisible(true);
 
@@ -47,7 +50,9 @@ public class RaidManager {
                 eq.setHelmet(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteHelmet())));
                 eq.setChestplate(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteChestplate())));
                 eq.setItemInMainHand(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteWeapon())));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                // Dobrze przechwycić wyjątek na przypadek błędnej nazwy materiału w configu
+            }
         }
     }
 }
