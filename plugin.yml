@@ -4,9 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import pl.betterraid.BetterRaid;
 
-import java.util.List;
-import java.util.Map;
-
 public class ConfigManager {
 
     private final BetterRaid plugin;
@@ -59,12 +56,15 @@ public class ConfigManager {
         this.bossBarColor = config.getString("boss.bossbar-color", "RED");
         this.bossBarStyle = config.getString("boss.bossbar-style", "SOLID");
 
+        // Wpierw kolorujemy sam prefiks
         this.prefix = colorize(config.getString("messages.prefix", "&8[&cBetterRaid&8] "));
-        this.noPermissionMsg = colorize(prefix + config.getString("messages.no-permission", "&cBrak uprawnień!"));
-        this.configReloadedMsg = colorize(prefix + config.getString("messages.config-reloaded", "&aPrzeładowano config!"));
-        this.raidStartedMsg = colorize(prefix + config.getString("messages.raid-started", "&aRozpoczęto rajd!"));
-        this.bossSpawnedMsg = colorize(prefix + config.getString("messages.boss-spawned", "&cZespawnowano Bossa!"));
-        this.bossDefeatedMsg = colorize(prefix + config.getString("messages.boss-defeated", "&aBoss został pokonany!"));
+        
+        // Łączymy pokolorowany prefiks z pokolorowaną wiadomością
+        this.noPermissionMsg = this.prefix + colorize(config.getString("messages.no-permission", "&cBrak uprawnień!"));
+        this.configReloadedMsg = this.prefix + colorize(config.getString("messages.config-reloaded", "&aPrzeładowano config!"));
+        this.raidStartedMsg = this.prefix + colorize(config.getString("messages.raid-started", "&aRozpoczęto rajd!"));
+        this.bossSpawnedMsg = this.prefix + colorize(config.getString("messages.boss-spawned", "&cZespawnowano Bossa!"));
+        this.bossDefeatedMsg = this.prefix + colorize(config.getString("messages.boss-defeated", "&aBoss został pokonany!"));
     }
 
     public String colorize(String message) {
