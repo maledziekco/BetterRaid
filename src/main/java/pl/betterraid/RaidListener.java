@@ -46,27 +46,25 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        // Zwiększone obrażenia zadawane przez potwory z rajdu
+        // Obrażenia zadawane przez raiderów
         if (event.getDamager() instanceof Raider) {
             double damageMultiplier = plugin.getConfigManager().getDamageMultiplier();
             event.setDamage(event.getDamage() * damageMultiplier);
         }
 
-        // Aktualizacja wyświetlanego HP nad głową po otrzymaniu obrażeń
+        // Aktualizacja HP nad głową po otrzymaniu obrażeń
         if (event.getEntity() instanceof Raider raider) {
-            // Dajemy silnikowi 1 tick na przeliczenie po obrażeniach
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> updateHealthTag(raider), 1L);
         }
     }
 
     private void applyCustomizations(Raider raider) {
         double healthMultiplier = plugin.getConfigManager().getHealthMultiplier();
+        double baseHealth = getCustomMaxHealthForType(raider.getType());
+        double newMaxHealth = baseHealth * healthMultiplier;
+
         AttributeInstance maxHealthAttr = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-
         if (maxHealthAttr != null) {
-            double defaultMax = maxHealthAttr.getBaseValue();
-            double newMaxHealth = defaultMax * healthMultiplier;
-
             maxHealthAttr.setBaseValue(newMaxHealth);
             raider.setHealth(newMaxHealth);
         }
@@ -80,7 +78,7 @@ public class RaidListener implements Listener {
 
         String baseName = getCustomNameForType(raider.getType());
         int currentHp = (int) Math.max(0, raider.getHealth());
-        
+
         AttributeInstance maxHealthAttr = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         int maxHp = maxHealthAttr != null ? (int) maxHealthAttr.getValue() : currentHp;
 
@@ -88,30 +86,38 @@ public class RaidListener implements Listener {
         raider.setCustomName(baseName + healthTag);
     }
 
+    /**
+     * Dedykowana ilość punktów życia (HP) dla każdego moba z osobna
+     */
+    private double getCustomMaxHealthForType(EntityType type) {
+        return switch (type) {
+            case RAVAGER -> 100.0;     // Dewastator — potężny czołg (100 HP)
+            case EVOKER -> 40.0;       // Przywoływacz — mag (40 HP)
+            case VINDICATOR -> 35.0;   // Siekacz — silny wojownik (35 HP)
+            case WITCH -> 30.0;        // Czarownica (30 HP)
+            case PILLAGER -> 24.0;     // Kusznik — standardowa piechota (24 HP)
+            case ILLUSIONER -> 32.0;   // Iluzjonista (32 HP)
+            default -> 24.0;
+        };
+    }
+
     private String getHealthColor(int current, int max) {
         double ratio = (double) current / max;
         if (ratio > 0.6) return "&a"; // Zielony dla > 60%
         if (ratio > 0.3) return "&e"; // Żółty dla > 30%
-        return "&c";                 // Czerwony dla niskiego poziomu HP
+        return "&c";                 // Czerwony dla niskiego HP
     }
 
     private String getCustomNameForType(EntityType type) {
-        switch (type) {
-            case PILLAGER:
-                return colorize("&cKusznik Najazdu");
-            case VINDICATOR:
-                return colorize("&4Siekacz Najazdu");
-            case EVOKER:
-                return colorize("&5Przywoływacz Najazdu");
-            case RAVAGER:
-                return colorize("&6Dewastator Najazdu");
-            case WITCH:
-                return colorize("&2Czarownica Najazdu");
-            case ILLUSIONER:
-                return colorize("&9Iluzjonista Najazdu");
-            default:
-                return colorize("&cWojownik Najazdu");
-        }
+        return switch (type) {
+            case PILLAGER -> colorize("&cKusznik Najazdu");
+            case VINDICATOR -> colorize("&4Siekacz Najazdu");
+            case EVOKER -> colorize("&5Przywoływacz Najazdu");
+            case RAVAGER -> colorize("&6Dewastator Najazdu");
+            case WITCH -> colorize("&2Czarownica Najazdu");
+            case ILLUSIONER -> colorize("&9Iluzjonista Najazdu");
+            default -> colorize("&cWojownik Najazdu");
+        };
     }
 
     private String colorize(String text) {
