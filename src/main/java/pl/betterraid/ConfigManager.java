@@ -36,10 +36,21 @@ public class ConfigManager {
         if (config.contains(path)) {
             return config.getDouble(path);
         }
-        return 24.0; // Domyślna wartość, jeśli brak wpisu w configu
+        return 24.0;
     }
 
-    // Metody pobierające wiadomości z configu wraz z kolorowaniem
+    // Nowa metoda: Pobiera indywidualny mnożnik obrażeń dla danego moba
+    public double getMobDamageMultiplier(EntityType type) {
+        FileConfiguration config = plugin.getConfig();
+        String path = "mobs-damage-multiplier." + type.name();
+
+        if (config.contains(path)) {
+            return config.getDouble(path);
+        }
+        // Jeśli brak wpisu, pobiera ogólny damage-multiplier z pliku config
+        return getDamageMultiplier();
+    }
+
     public String getPrefix() {
         return colorize(plugin.getConfig().getString("messages.prefix", "&8[&cBetterRaid&8] "));
     }
@@ -52,7 +63,6 @@ public class ConfigManager {
         return colorize(plugin.getConfig().getString("messages.config-reloaded", "&aPrzeładowano config!"));
     }
 
-    // Zmienione na public, aby inne klasy (np. BetterRaidCommand) mogły z niej korzystać
     public String colorize(String text) {
         if (text == null) return "";
         return ChatColor.translateAlternateColorCodes('&', text);

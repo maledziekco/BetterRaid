@@ -3,18 +3,27 @@
 # ==========================================
 
 raid:
-  health-multiplier: 1.50   # Mnożnik bazowego HP dla wszystkich mobów z rajdu (np. 1.50 = +50% życia)
-  damage-multiplier: 2.50   # Moby biją o 150% mocniej (2.5x silniejsze ciosy!)
-  extra-mobs-multiplier: 2  # Dwa dodatkowe moby na każdy spawn (+200% więcej mobów!)
+  health-multiplier: 1.50   # Globalny mnożnik bazowego HP
+  damage-multiplier: 2.50   # Domyślny mnożnik obrażeń (jeśli mob nie ma wpisu poniżej)
+  extra-mobs-multiplier: 2  # Dwa dodatkowe moby na każdy spawn
 
 # Bazowa ilość punktów życia (HP) dla każdego typu moba
 mobs-base-hp:
-  RAVAGER: 100.0     # Dewastator
-  EVOKER: 40.0       # Przywoływacz
-  VINDICATOR: 35.0   # Siekacz
-  ILLUSIONER: 32.0   # Iluzjonista
-  WITCH: 30.0        # Czarownica
-  PILLAGER: 24.0     # Kusznik
+  RAVAGER: 100.0     
+  EVOKER: 40.0       
+  VINDICATOR: 35.5   
+  ILLUSIONER: 32.0   
+  WITCH: 30.0        
+  PILLAGER: 24.0     
+
+# Indywidualny mnożnik obrażeń dla każdego moba
+mobs-damage-multiplier:
+  RAVAGER: 3.0       # Dewastator bije mocno
+  EVOKER: 2.0        
+  VINDICATOR: 2.5    
+  ILLUSIONER: 2.0    
+  WITCH: 1.5         
+  PILLAGER: 4.0      # Kusznik może teraz bić bardzo mocno!
 
 messages:
   prefix: "&8[&cBetterRaid&8] "

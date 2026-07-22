@@ -70,8 +70,9 @@ public class RaidListener implements Listener {
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof LivingEntity damager && isRaidMob(damager)) {
-            double damageMultiplier = plugin.getConfigManager().getDamageMultiplier();
-            event.setDamage(event.getDamage() * damageMultiplier);
+            // Pobieramy dedykowany mnożnik obrażeń dla konkretnego typu moba z configu
+            double specificMultiplier = plugin.getConfigManager().getMobDamageMultiplier(damager.getType());
+            event.setDamage(event.getDamage() * specificMultiplier);
         }
     }
 
@@ -80,7 +81,6 @@ public class RaidListener implements Listener {
     }
 
     private void applyCustomizations(LivingEntity entity) {
-        // Pobieramy bazowe HP z pliku config.yml oraz globalny mnożnik
         double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
         double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
         double finalMaxHealth = baseHealth * globalMultiplier;
@@ -91,7 +91,6 @@ public class RaidListener implements Listener {
             entity.setHealth(finalMaxHealth);
         }
 
-        // Nazwa i pasek zdrowia nad głową są całkowicie wyłączone
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
     }
