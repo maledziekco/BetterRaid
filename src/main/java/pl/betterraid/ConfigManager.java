@@ -1,5 +1,6 @@
 package pl.betterraid;
 
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 
@@ -36,5 +37,23 @@ public class ConfigManager {
             return config.getDouble(path);
         }
         return 24.0; // Domyślna wartość, jeśli brak wpisu w configu
+    }
+
+    // Metody pobierające wiadomości z configu wraz z kolorowaniem
+    public String getPrefix() {
+        return colorize(plugin.getConfig().getString("messages.prefix", "&8[&cBetterRaid&8] "));
+    }
+
+    public String getNoPermissionMsg() {
+        return colorize(plugin.getConfig().getString("messages.no-permission", "&cBrak uprawnień!"));
+    }
+
+    public String getConfigReloadedMsg() {
+        return colorize(plugin.getConfig().getString("messages.config-reloaded", "&aPrzeładowano config!"));
+    }
+
+    private String colorize(String text) {
+        if (text == null) return "";
+        return ChatColor.translateAlternateColorCodes('&', text);
     }
 }
