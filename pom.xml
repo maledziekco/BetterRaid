@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
 
     <name>BetterRaid</name>
+    <description>Plugin ulepszający rajdy na serwerze Paper Minecraft</description>
 
     <properties>
         <java.version>21</java.version>
@@ -17,6 +18,7 @@
     </properties>
 
     <repositories>
+        <!-- Oficjalne repozytorium PaperMC -->
         <repository>
             <id>papermc-repo</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
@@ -24,26 +26,30 @@
     </repositories>
 
     <dependencies>
+        <!-- Papier API do wsparcia wersji Paper 26.2+ -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Kompilator Java skrojony pod Java 21 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
         </plugins>
+
+        <!-- Dołączanie pliku plugin.yml i config.yml do wynikowej paczki .jar -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>

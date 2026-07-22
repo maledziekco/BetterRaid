@@ -9,7 +9,7 @@ public class ConfigManager {
 
     private double healthMultiplier;
     private double damageMultiplier;
-    private double extraMobsChance;
+    private int extraMobsMultiplier;
     private double eliteSpawnChance;
     private String eliteHelmet;
     private String eliteChestplate;
@@ -40,11 +40,11 @@ public class ConfigManager {
         plugin.reloadConfig();
         FileConfiguration config = plugin.getConfig();
 
-        this.healthMultiplier = config.getDouble("raid.health-multiplier", 1.30);
-        this.damageMultiplier = config.getDouble("raid.damage-multiplier", 1.20);
-        this.extraMobsChance = config.getDouble("raid.extra-mobs-chance", 0.50);
+        this.healthMultiplier = config.getDouble("raid.health-multiplier", 1.50);
+        this.damageMultiplier = config.getDouble("raid.damage-multiplier", 2.50);
+        this.extraMobsMultiplier = config.getInt("raid.extra-mobs-multiplier", 2);
 
-        this.eliteSpawnChance = config.getDouble("elites.spawn-chance", 0.25);
+        this.eliteSpawnChance = config.getDouble("elites.spawn-chance", 0.30);
         this.eliteHelmet = config.getString("elites.helmet", "DIAMOND_HELMET");
         this.eliteChestplate = config.getString("elites.chestplate", "DIAMOND_CHESTPLATE");
         this.eliteWeapon = config.getString("elites.weapon", "NETHERITE_SWORD");
@@ -53,7 +53,7 @@ public class ConfigManager {
         this.bossEnabled = config.getBoolean("boss.enabled", true);
         this.bossType = config.getString("boss.type", "RAVAGER");
         this.bossName = config.getString("boss.name", "&c&lBOSS");
-        this.bossMaxHealth = config.getDouble("boss.max-health", 350.0);
+        this.bossMaxHealth = config.getDouble("boss.max-health", 500.0);
         this.bossBarColor = config.getString("boss.bossbar-color", "RED");
         this.bossBarStyle = config.getString("boss.bossbar-style", "SOLID");
 
@@ -73,7 +73,7 @@ public class ConfigManager {
     // Getters
     public double getHealthMultiplier() { return healthMultiplier; }
     public double getDamageMultiplier() { return damageMultiplier; }
-    public double getExtraMobsChance() { return extraMobsChance; }
+    public int getExtraMobsMultiplier() { return extraMobsMultiplier; }
     public double getEliteSpawnChance() { return eliteSpawnChance; }
     public String getEliteHelmet() { return eliteHelmet; }
     public String getEliteChestplate() { return eliteChestplate; }

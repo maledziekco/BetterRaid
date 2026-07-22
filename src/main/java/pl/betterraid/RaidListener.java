@@ -18,21 +18,20 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onRaidSpawn(EntitySpawnEvent event) {
-        // Sprawdzamy, czy zespawnowany mob to uczestnik rajdu (Raider)
+        // Sprawdzamy czy zespawnowana istota należy do rajdu
         if (event.getEntity() instanceof Raider raider) {
             
             // Ignorujemy moby poza aktywnym rajdem
             if (raider.getRaid() == null) return;
 
-            // Pobieramy szansę z configu
-            double chance = plugin.getConfigManager().getExtraMobsChance();
+            // Pobieramy z configu ile dodatkowych mobów ma stworzyć (dla +200% ustawiamy 2)
+            int extraCount = plugin.getConfigManager().getExtraMobsMultiplier();
 
-            // Jeśli losowa wartość jest mniejsza niż szansa - klonujemy moba!
-            if (Math.random() < chance) {
-                World world = raider.getWorld();
-                Location loc = raider.getLocation();
-                
-                // Spawnuje dodatkowego moba tego samego typu w tym samym miejscu
+            World world = raider.getWorld();
+            Location loc = raider.getLocation();
+
+            // Pętla spawnuje podaną liczbę dodatkowych potworów (+200% = 2 klony na 1 moba)
+            for (int i = 0; i < extraCount; i++) {
                 world.spawn(loc, raider.getClass());
             }
         }
@@ -40,6 +39,6 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        // Logika zdarzeń po śmierci moba
+        // Logika po śmierci moba
     }
 }
