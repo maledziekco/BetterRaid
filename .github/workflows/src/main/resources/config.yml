@@ -1,0 +1,30 @@
+# ==========================================
+#        BetterRaid - Konfiguracja
+# ==========================================
+
+raid:
+  health-multiplier: 1.30
+  damage-multiplier: 1.20
+
+elites:
+  spawn-chance: 0.25
+  helmet: "DIAMOND_HELMET"
+  chestplate: "DIAMOND_CHESTPLATE"
+  weapon: "NETHERITE_SWORD"
+  display-prefix: "&e[ELITA] "
+
+boss:
+  enabled: true
+  type: "RAVAGER"
+  name: "&c&lBOSS"
+  max-health: 350.0
+  bossbar-color: "RED"
+  bossbar-style: "SOLID"
+
+messages:
+  prefix: "&8[&cBetterRaid&8] "
+  no-permission: "&cBrak uprawnień!"
+  config-reloaded: "&aPrzeładowano config!"
+  raid-started: "&aRozpoczęto rajd!"
+  boss-spawned: "&cZespawnowano Bossa!"
+  boss-defeated: "&aBoss został pokonany!"
