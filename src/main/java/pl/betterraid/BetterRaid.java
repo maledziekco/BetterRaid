@@ -1,12 +1,6 @@
 package pl.betterraid;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import pl.betterraid.boss.BossManager;
-import pl.betterraid.command.RaidCommand;
-import pl.betterraid.config.ConfigManager;
-import pl.betterraid.listener.RaidListener;
-import pl.betterraid.raid.RaidManager;
-import pl.betterraid.reward.RewardManager;
 
 public class BetterRaid extends JavaPlugin {
 
@@ -27,7 +21,7 @@ public class BetterRaid extends JavaPlugin {
 
         // 3. Rejestracja komend
         if (getCommand("raid") != null) {
-            getCommand("raid").setExecutor(new RaidCommand(this));
+           getCommand("raid").setExecutor(new BetterRaidCommand(this));
         }
 
         // 4. Rejestracja listenerów (eventów)
