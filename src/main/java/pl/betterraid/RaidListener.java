@@ -10,7 +10,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
-import org.bukkit.event.raid.RaidTriggerEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,39 +24,28 @@ public class RaidListener implements Listener {
         this.plugin = plugin;
     }
 
-    // Ustawianie liczby fal na podstawie poziomu Bad Omen zgodnie z Twoją tabelą
-    @EventHandler
-    public void onRaidTrigger(RaidTriggerEvent event) {
-        int badOmenLevel = event.getRaid().getBadOmenLevel();
-        int targetWaves;
-
-        switch (badOmenLevel) {
-            case 1:
-                targetWaves = 4;
-                break;
-            case 2:
-                targetWaves = 6;
-                break;
-            case 3:
-                targetWaves = 8;
-                break;
-            case 4:
-                targetWaves = 10;
-                break;
-            default:
-                // Dla poziomu 5 i wyższych ustawiamy 14 fal (lub więcej, jeśli podasz wyższy poziom)
-                targetWaves = badOmenLevel >= 5 ? 14 : 4;
-                break;
-        }
-
-        event.getRaid().setTotalWaves(targetWaves);
-    }
-
     @EventHandler
     public void onWaveSpawn(RaidSpawnWaveEvent event) {
+        int badOmenLevel = event.getRaid().getBadOmenLevel();
+        int maxWaves;
+
+        switch (badOmenLevel) {
+            case 1: maxWaves = 4; break;
+            case 2: maxWaves = 6; break;
+            case 3: maxWaves = 8; break;
+            case 4: maxWaves = 10; break;
+            default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
+        }
+
+        // Jeśli aktualny numer fali przekracza limit dla danego Bad Omena, anulujemy spawn tej fali
+        if (event.getRaid().getActiveWave() > maxWaves) {
+            event.getRaiders().clear();
+            return;
+        }
+
         List<Raider> originalRaiders = new ArrayList<>(event.getRaiders());
         int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier();
-        int waveNumber = event.getRaid().getBadOmenLevel();
+        int waveNumber = event.getRaid().getActiveWave();
 
         for (Raider raider : originalRaiders) {
             applyCustomizations(raider);
