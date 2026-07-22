@@ -1,5 +1,3 @@
-src/main/java/pl/betterraid/config/ConfigManager.java
-
 package pl.betterraid.config;
 
 import org.bukkit.ChatColor;
