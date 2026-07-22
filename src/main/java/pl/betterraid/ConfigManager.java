@@ -49,18 +49,22 @@ public class ConfigManager {
         return getDamageMultiplier();
     }
 
-    // Pobiera szansę procentową z configu dla danego moba i fali
+    // Obsługa 10 fal rajdu
     public int getSpawnChance(int wave, EntityType type) {
         FileConfiguration config = plugin.getConfig();
         String waveGroup;
 
-        if (wave <= 2) {
-            waveGroup = "waves-1-2";
-        } else if (wave <= 4) {
-            waveGroup = "waves-3-4";
-        } else {
-            waveGroup = "waves-5-plus";
-        }
+        if (wave == 1) waveGroup = "wave-1";
+        else if (wave == 2) waveGroup = "wave-2";
+        else if (wave == 3) waveGroup = "wave-3";
+        else if (wave == 4) waveGroup = "wave-4";
+        else if (wave == 5) waveGroup = "wave-5";
+        else if (wave == 6) waveGroup = "wave-6";
+        else if (wave == 7) waveGroup = "wave-7";
+        else if (wave == 8) waveGroup = "wave-8";
+        else if (wave == 9) waveGroup = "wave-9";
+        else if (wave == 10) waveGroup = "wave-10";
+        else waveGroup = "wave-11-plus";
 
         String path = "wave-spawn-chances." + waveGroup + "." + type.name();
         return config.getInt(path, 0);

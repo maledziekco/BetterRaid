@@ -52,7 +52,6 @@ public class RaidListener implements Listener {
         int roll = random.nextInt(100);
         int currentSum = 0;
 
-        // Sprawdzamy po kolei szanse dla każdego moba z configu
         EntityType[] possibleTypes = {
             EntityType.PILLAGER,
             EntityType.VINDICATOR,
@@ -72,7 +71,7 @@ public class RaidListener implements Listener {
             }
         }
 
-        return fallbackType; // Awaryjnie zwraca domyślny typ
+        return fallbackType;
     }
 
     @EventHandler
@@ -98,6 +97,7 @@ public class RaidListener implements Listener {
             entity.setHealth(finalMaxHealth);
         }
 
+        // Nazwy i paski zdrowia nad głową całkowicie wyłączone
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
     }

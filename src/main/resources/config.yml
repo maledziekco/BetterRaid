@@ -1,11 +1,14 @@
 # ==========================================
 #         BetterRaid - Konfiguracja
+#             Autor: maledziecko
 # ==========================================
 
+author: "maledziecko"
+
 raid:
-  health-multiplier: 1.50   
-  damage-multiplier: 2.50   
-  extra-mobs-multiplier:  2  
+  health-multiplier: 1.50   # Globalny mnożnik bazowego HP
+  damage-multiplier: 2.50   # Domyślny mnożnik obrażeń
+  extra-mobs-multiplier: 2  # Liczba dodatkowych mobów na każdy spawn
 
 # Bazowa ilość punktów życia (HP) dla każdego typu moba
 mobs-base-hp:
@@ -25,37 +28,87 @@ mobs-damage-multiplier:
   WITCH: 1.5         
   PILLAGER: 4.0      
 
-# Procentowe szanse na spawnowanie konkretnych mobów w zależności od fali
+# Procentowe szanse na spawnowanie konkretnych mobów dla każdej z 10 fal (Suma w każdej fali powinna wynosić 100)
 wave-spawn-chances:
-  # Fale 1 i 2 (Lekkie)
-  waves-1-2:
+  wave-1:
+    PILLAGER: 70
+    VINDICATOR: 30
+    ILLUSIONER: 0
+    WITCH: 0
+    EVOKER: 0
+    RAVAGER: 0
+  wave-2:
     PILLAGER: 60
     VINDICATOR: 40
     ILLUSIONER: 0
     WITCH: 0
     EVOKER: 0
     RAVAGER: 0
-    
-  # Fale 3 i 4 (Średnie)
-  waves-3-4:
+  wave-3:
+    PILLAGER: 50
+    VINDICATOR: 40
+    ILLUSIONER: 10
+    WITCH: 0
+    EVOKER: 0
+    RAVAGER: 0
+  wave-4:
+    PILLAGER: 40
+    VINDICATOR: 40
+    ILLUSIONER: 10
+    WITCH: 10
+    EVOKER: 0
+    RAVAGER: 0
+  wave-5:
     PILLAGER: 30
     VINDICATOR: 30
     ILLUSIONER: 20
     WITCH: 20
     EVOKER: 0
     RAVAGER: 0
-    
-  # Fale 5+ (Trudne / Finałowe)
-  waves-5-plus:
-    PILLAGER: 10
-    VINDICATOR: 20
+  wave-6:
+    PILLAGER: 20
+    VINDICATOR: 30
     ILLUSIONER: 10
     WITCH: 20
     EVOKER: 20
+    RAVAGER: 0
+  wave-7:
+    PILLAGER: 15
+    VINDICATOR: 25
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 20
+    RAVAGER: 10
+  wave-8:
+    PILLAGER: 10
+    VINDICATOR: 20
+    ILLUSIONER: 20
+    WITCH: 20
+    EVOKER: 20
+    RAVAGER: 10
+  wave-9:
+    PILLAGER: 5
+    VINDICATOR: 15
+    ILLUSIONER: 15
+    WITCH: 20
+    EVOKER: 25
     RAVAGER: 20
+  wave-10:
+    PILLAGER: 5
+    VINDICATOR: 10
+    ILLUSIONER: 15
+    WITCH: 15
+    EVOKER: 30
+    RAVAGER: 25
+  wave-11-plus:
+    PILLAGER: 0
+    VINDICATOR: 10
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 30
+    RAVAGER: 30
 messages:
   prefix: "&8[&cBetterRaid&8] "
   no-permission: "&cBrak uprawnień!"
   config-reloaded: "&aPrzeładowano config!"
   raid-started: "&aRozpoczęto rajd z potężnymi falami!"
-  
