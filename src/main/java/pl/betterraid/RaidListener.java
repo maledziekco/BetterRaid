@@ -37,15 +37,15 @@ public class RaidListener implements Listener {
             default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
         }
 
-        // Jeśli aktualny numer fali przekracza limit dla danego Bad Omena, anulujemy spawn tej fali
-        if (event.getRaid().getActiveWave() > maxWaves) {
+        // event.getRaid().getSpawnedGroups() zwraca aktualną falę rajdu
+        if (event.getRaid().getSpawnedGroups() > maxWaves) {
             event.getRaiders().clear();
             return;
         }
 
         List<Raider> originalRaiders = new ArrayList<>(event.getRaiders());
         int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier();
-        int waveNumber = event.getRaid().getActiveWave();
+        int waveNumber = event.getRaid().getSpawnedGroups();
 
         for (Raider raider : originalRaiders) {
             applyCustomizations(raider);
