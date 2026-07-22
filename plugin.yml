@@ -1,3 +1,5 @@
+src/main/resources/plugin.yml
+
 package pl.betterraid.config;
 
 import org.bukkit.ChatColor;
