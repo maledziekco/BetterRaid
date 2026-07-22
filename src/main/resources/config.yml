@@ -1,26 +1,20 @@
 # ==========================================
-#        BetterRaid - Konfiguracja
+#         BetterRaid - Konfiguracja
 # ==========================================
 
 raid:
-  health-multiplier: 1.50   # 50% więcej życia dla mobów
+  health-multiplier: 1.50   # Mnożnik bazowego HP dla wszystkich mobów z rajdu (np. 1.50 = +50% życia)
   damage-multiplier: 2.50   # Moby biją o 150% mocniej (2.5x silniejsze ciosy!)
   extra-mobs-multiplier: 2  # Dwa dodatkowe moby na każdy spawn (+200% więcej mobów!)
-  health-multiplier: 2.0  # Np. 2.0 podwoi punkty życia mobów z rajdu
-elites:
-  spawn-chance: 0.30
-  helmet: "DIAMOND_HELMET"
-  chestplate: "DIAMOND_CHESTPLATE"
-  weapon: "NETHERITE_SWORD"
-  display-prefix: "&e[ELITA] "
 
-boss:
-  enabled: true
-  type: "RAVAGER"
-  name: "&c&lBOSS"
-  max-health: 500.0
-  bossbar-color: "RED"
-  bossbar-style: "SOLID"
+# Bazowa ilość punktów życia (HP) dla każdego typu moba
+mobs-base-hp:
+  RAVAGER: 100.0     # Dewastator
+  EVOKER: 40.0       # Przywoływacz
+  VINDICATOR: 35.0   # Siekacz
+  ILLUSIONER: 32.0   # Iluzjonista
+  WITCH: 30.0        # Czarownica
+  PILLAGER: 24.0     # Kusznik
 
 messages:
   prefix: "&8[&cBetterRaid&8] "
