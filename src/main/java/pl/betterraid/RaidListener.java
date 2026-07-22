@@ -5,6 +5,8 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,6 +16,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -65,12 +68,10 @@ public class RaidListener implements Listener {
         }
     }
 
-    // Dodatkowe zdarzenie przechwytujące każdy spawn moba z rajdu, co uniemożliwia resetowanie HP
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         LivingEntity entity = event.getEntity();
         if (isRaidMob(entity)) {
-            // Sprawdzamy czy mob jest w pobliżu aktywnego rajdu lub po prostu modyfikujemy jego bazę od razu
             applyCustomizations(entity);
         }
     }
@@ -134,6 +135,17 @@ public class RaidListener implements Listener {
             if (maxHealthAttr != null) {
                 maxHealthAttr.setBaseValue(finalMaxHealth);
                 entity.setHealth(finalMaxHealth);
+            }
+        }
+
+        // Wymuszenie AGRO (Atakowanie najbliższego gracza w promieniu 32 bloków)
+        if (entity instanceof Mob mob) {
+            Player target = mob.getWorld().getPlayers().stream()
+                    .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
+                    .orElse(null);
+
+            if (target != null && target.getLocation().distanceSquared(mob.getLocation()) <= 1024) {
+                mob.setTarget(target);
             }
         }
 

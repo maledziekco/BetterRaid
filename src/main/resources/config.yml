@@ -10,15 +10,15 @@ raid:
   damage-multiplier: 2.50
   extra-mobs-multiplier: 2
 
-  mobs-base-hp:
+mobs-base-hp:
   RAVAGER: 150
   EVOKER: 40
   VINDICATOR: 50
   ILLUSIONER: 25
   WITCH: 50
-  PILLAGER: 30
+  PILLAGER: 30  
 
-  mobs-damage-multiplier:
+mobs-damage-multiplier:
   RAVAGER: 3.0
   EVOKER: 3.0
   VINDICATOR: 2.5
@@ -26,7 +26,107 @@ raid:
   WITCH: 1.5
   PILLAGER: 15
 
-  messages:
+wave-spawn-chances:
+  wave-1:
+    PILLAGER: 70
+    VINDICATOR: 30
+    ILLUSIONER: 0
+    WITCH: 0
+    EVOKER: 0
+    RAVAGER: 0
+  wave-2:
+    PILLAGER: 60
+    VINDICATOR: 40
+    ILLUSIONER: 0
+    WITCH: 0
+    EVOKER: 0
+    RAVAGER: 0
+  wave-3:
+    PILLAGER: 50
+    VINDICATOR: 40
+    ILLUSIONER: 0
+    WITCH: 10
+    EVOKER: 0
+    RAVAGER: 0
+  wave-4:
+    PILLAGER: 40
+    VINDICATOR: 30
+    ILLUSIONER: 0
+    WITCH: 30
+    EVOKER: 0
+    RAVAGER: 0
+  wave-5:
+    PILLAGER: 30
+    VINDICATOR: 30
+    ILLUSIONER: 20
+    WITCH: 20
+    EVOKER: 0
+    RAVAGER: 0
+  wave-6:
+    PILLAGER: 20
+    VINDICATOR: 30
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 20
+    RAVAGER: 0
+  wave-7:
+    PILLAGER: 15
+    VINDICATOR: 25
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 20
+    RAVAGER: 10
+  wave-8:
+    PILLAGER: 10
+    VINDICATOR: 20
+    ILLUSIONER: 20
+    WITCH: 20
+    EVOKER: 20
+    RAVAGER: 10
+  wave-9:
+    PILLAGER: 5
+    VINDICATOR: 15
+    ILLUSIONER: 15
+    WITCH: 20
+    EVOKER: 25
+    RAVAGER: 20
+  wave-10:
+    PILLAGER: 5
+    VINDICATOR: 10
+    ILLUSIONER: 15
+    WITCH: 15
+    EVOKER: 30
+    RAVAGER: 25
+  wave-11:
+    PILLAGER: 5
+    VINDICATOR: 15
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 30
+    RAVAGER: 20
+  wave-12:
+    PILLAGER: 5
+    VINDICATOR: 40
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 5
+    RAVAGER: 20
+  wave-13:
+    PILLAGER: 0
+    VINDICATOR: 10
+    ILLUSIONER: 30
+    WITCH: 10
+    EVOKER: 30
+    RAVAGER: 20
+  wave-14-plus:
+    PILLAGER: 0
+    VINDICATOR: 5
+    ILLUSIONER: 5
+    WITCH: 10
+    EVOKER: 50
+    RAVAGER: 30
+
+messages:
   prefix: "&8[&cBetterRaid&8] "
   no-permission: "&cBrak uprawnień!"
   config-reloaded: "&aPrzeładowano config!"
