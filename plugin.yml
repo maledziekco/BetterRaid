@@ -94,4 +94,4 @@ public class ConfigManager {
     public String getRaidStartedMsg() { return raidStartedMsg; }
     public String getBossSpawnedMsg() { return bossSpawnedMsg; }
     public String getBossDefeatedMsg() { return bossDefeatedMsg; }
-}
+}   src/main/resources/plugin.yml
