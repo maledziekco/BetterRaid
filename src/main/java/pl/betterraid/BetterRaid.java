@@ -2,15 +2,14 @@ package pl.betterraid;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import pl.betterraid.boss.BossManager;
-import pl.betterraid.command.BetterRaidCommand;
+import pl.betterraid.command.RaidCommand;
 import pl.betterraid.config.ConfigManager;
 import pl.betterraid.listener.RaidListener;
 import pl.betterraid.raid.RaidManager;
 import pl.betterraid.reward.RewardManager;
 
-public final class BetterRaid extends JavaPlugin {
+public class BetterRaid extends JavaPlugin {
 
-    private static BetterRaid instance;
     private ConfigManager configManager;
     private RaidManager raidManager;
     private BossManager bossManager;
@@ -18,41 +17,31 @@ public final class BetterRaid extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
-
-        // Configuration setup
+        // 1. Inicjalizacja konfiguracji
         this.configManager = new ConfigManager(this);
 
-        // Managers initialization
+        // 2. Inicjalizacja managerów
+        this.raidManager = new RaidManager(this);
         this.bossManager = new BossManager(this);
         this.rewardManager = new RewardManager(this);
-        this.raidManager = new RaidManager(this);
 
-        // Register event listener
-        getServer().getPluginManager().registerEvents(new RaidListener(this), this);
-
-        // Register commands
-        if (getCommand("betterraid") != null) {
-            BetterRaidCommand cmd = new BetterRaidCommand(this);
-            getCommand("betterraid").setExecutor(cmd);
-            getCommand("betterraid").setTabCompleter(cmd);
+        // 3. Rejestracja komend
+        if (getCommand("raid") != null) {
+            getCommand("raid").setExecutor(new RaidCommand(this));
         }
 
-        getLogger().info("BetterRaid został pomyślnie włączony na Paper 1.21!");
+        // 4. Rejestracja listenerów (eventów)
+        getServer().getPluginManager().registerEvents(new RaidListener(this), this);
+
+        getLogger().info("Plugin BetterRaid zostal pomyslnie wlaczony!");
     }
 
     @Override
     public void onDisable() {
-        if (bossManager != null) {
-            bossManager.clearAllBosses();
-        }
-        getLogger().info("BetterRaid został wyłączony.");
+        getLogger().info("Plugin BetterRaid zostal wylaczony.");
     }
 
-    public static BetterRaid getInstance() {
-        return instance;
-    }
-
+    // Gettery do managerów
     public ConfigManager getConfigManager() {
         return configManager;
     }
