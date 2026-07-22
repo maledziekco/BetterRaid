@@ -6,28 +6,27 @@
 author: "maledziecko"
 
 raid:
-  health-multiplier: 1.50   # Globalny mnożnik bazowego HP
+  health-multiplier: 2.   # Globalny mnożnik bazowego HP
   damage-multiplier: 2.50   # Domyślny mnożnik obrażeń
   extra-mobs-multiplier: 2  # Liczba dodatkowych mobów na każdy spawn
 
 # Bazowa ilość punktów życia (HP) dla każdego typu moba
 mobs-base-hp:
-  RAVAGER: 100.0     
-  EVOKER: 40.0       
-  VINDICATOR: 35.0   
-  ILLUSIONER: 32.0   
-  WITCH: 30.0        
-  PILLAGER: 24.0     
+    RAVAGER: 150.0
+  EVOKER: 40.0
+  VINDICATOR: 50.0
+  ILLUSIONER: 25.0
+  WITCH: 50.0
+  PILLAGER: 30.0    
 
 # Indywidualny mnożnik obrażeń dla każdego moba
 mobs-damage-multiplier:
-  RAVAGER: 3.0       
-  EVOKER: 2.0        
-  VINDICATOR: 2.5    
-  ILLUSIONER: 2.0    
-  WITCH: 1.5         
-  PILLAGER: 4.0      
-
+ RAVAGER: 3.0
+  EVOKER: 3.0
+  VINDICATOR: 2.5
+  ILLUSIONER: 2.0
+  WITCH: 1.5
+  PILLAGER: 5.0
 # Procentowe szanse na spawnowanie konkretnych mobów dla każdej z 10 fal (Suma w każdej fali powinna wynosić 100)
 wave-spawn-chances:
   wave-1:
@@ -47,15 +46,15 @@ wave-spawn-chances:
   wave-3:
     PILLAGER: 50
     VINDICATOR: 40
-    ILLUSIONER: 10
-    WITCH: 0
+    ILLUSIONER: 0
+    WITCH: 10
     EVOKER: 0
     RAVAGER: 0
   wave-4:
     PILLAGER: 40
-    VINDICATOR: 40
-    ILLUSIONER: 10
-    WITCH: 10
+    VINDICATOR: 30
+    ILLUSIONER: 0
+    WITCH: 30
     EVOKER: 0
     RAVAGER: 0
   wave-5:
@@ -100,12 +99,33 @@ wave-spawn-chances:
     WITCH: 15
     EVOKER: 30
     RAVAGER: 25
-  wave-11-plus:
-    PILLAGER: 0
-    VINDICATOR: 10
+  wave-11:
+    PILLAGER: 5
+    VINDICATOR: 15
     ILLUSIONER: 10
     WITCH: 20
     EVOKER: 30
+    RAVAGER: 20
+  wave-12:
+    PILLAGER: 5
+    VINDICATOR: 40
+    ILLUSIONER: 10
+    WITCH: 20
+    EVOKER: 5
+    RAVAGER: 20
+  wave-13:
+    PILLAGER: 0
+    VINDICATOR: 10
+    ILLUSIONER: 30
+    WITCH: 10
+    EVOKER: 30
+    RAVAGER: 20
+  wave-14-plus:
+    PILLAGER: 0
+    VINDICATOR: 5
+    ILLUSIONER: 5
+    WITCH: 10
+    EVOKER: 50
     RAVAGER: 30
 messages:
   prefix: "&8[&cBetterRaid&8] "
