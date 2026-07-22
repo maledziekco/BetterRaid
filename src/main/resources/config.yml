@@ -6,18 +6,18 @@
 author: "maledziecko"
 
 raid:
-  health-multiplier: 2.   # Globalny mnożnik bazowego HP
-  damage-multiplier: 2.50   # Domyślny mnożnik obrażeń
-  extra-mobs-multiplier: 2  # Liczba dodatkowych mobów na każdy spawn
+  health-multiplier: 2.0
+  damage-multiplier: 2.50
+  extra-mobs-multiplier: 2 # Liczba dodatkowych mobów na każdy spawn
 
 # Bazowa ilość punktów życia (HP) dla każdego typu moba
 mobs-base-hp:
-    RAVAGER: 150.0
+  RAVAGER: 150.0
   EVOKER: 40.0
   VINDICATOR: 50.0
   ILLUSIONER: 25.0
   WITCH: 50.0
-  PILLAGER: 30.0    
+  PILLAGER: 30.0  
 
 # Indywidualny mnożnik obrażeń dla każdego moba
 mobs-damage-multiplier:

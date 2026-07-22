@@ -31,25 +31,32 @@ public class ConfigManager {
 
     public double getMobBaseHealth(EntityType type) {
         FileConfiguration config = plugin.getConfig();
-        String path = "mobs-base-hp." + type.name();
+        // Poprawiona ścieżka - szukamy wewnątrz raid.mobs-base-hp lub bezpośrednio w mobs-base-hp
+        // Zależnie od tego, czy mobs-base-hp jest pod raid:, sprawdzamy obie możliwości dla pewności:
+        String pathRaid = "raid.mobs-base-hp." + type.name();
+        String pathRoot = "mobs-base-hp." + type.name();
         
-        if (config.contains(path)) {
-            return config.getDouble(path);
+        if (config.contains(pathRaid)) {
+            return config.getDouble(pathRaid);
+        } else if (config.contains(pathRoot)) {
+            return config.getDouble(pathRoot);
         }
         return 24.0;
     }
 
     public double getMobDamageMultiplier(EntityType type) {
         FileConfiguration config = plugin.getConfig();
-        String path = "mobs-damage-multiplier." + type.name();
+        String pathRaid = "raid.mobs-damage-multiplier." + type.name();
+        String pathRoot = "mobs-damage-multiplier." + type.name();
 
-        if (config.contains(path)) {
-            return config.getDouble(path);
+        if (config.contains(pathRaid)) {
+            return config.getDouble(pathRaid);
+        } else if (config.contains(pathRoot)) {
+            return config.getDouble(pathRoot);
         }
         return getDamageMultiplier();
     }
 
-    // Obsługa 10 fal rajdu
     public int getSpawnChance(int wave, EntityType type) {
         FileConfiguration config = plugin.getConfig();
         String waveGroup;
@@ -66,8 +73,13 @@ public class ConfigManager {
         else if (wave == 10) waveGroup = "wave-10";
         else waveGroup = "wave-11-plus";
 
-        String path = "wave-spawn-chances." + waveGroup + "." + type.name();
-        return config.getInt(path, 0);
+        String pathRaid = "raid.wave-spawn-chances." + waveGroup + "." + type.name();
+        String pathRoot = "wave-spawn-chances." + waveGroup + "." + type.name();
+
+        if (config.contains(pathRaid)) {
+            return config.getInt(pathRaid, 0);
+        }
+        return config.getInt(pathRoot, 0);
     }
 
     public String getPrefix() {
