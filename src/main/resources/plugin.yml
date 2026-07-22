@@ -2,7 +2,7 @@ name: BetterRaid
 version: '1.0'
 main: pl.betterraid.BetterRaid
 api-version: '1.20'
-author: TwojNick
+author: maledziecko
 
 commands:
   betterraid:
