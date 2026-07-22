@@ -1,58 +1,54 @@
-package pl.betterraid.raid;
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Raider;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.ItemStack;
-import pl.betterraid.BetterRaid;
+    <groupId>pl.betterraid</groupId>
+    <artifactId>BetterRaid</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-import java.util.Random;
+    <name>BetterRaid</name>
 
-public class RaidManager {
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
-    private final BetterRaid plugin;
-    private final Random random = new Random();
+    <repositories>
+        <repository>
+            <id>papermc-repo</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+    </repositories>
 
-    public RaidManager(BetterRaid plugin) {
-        this.plugin = plugin;
-    }
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
-    public void enhanceRaider(Raider raider) {
-        // Boost health (używamy MAX_HEALTH zamiast GENERIC_MAX_HEALTH)
-        AttributeInstance healthAttribute = raider.getAttribute(Attribute.MAX_HEALTH);
-        if (healthAttribute != null) {
-            double healthMult = plugin.getConfigManager().getHealthMultiplier();
-            double newMax = healthAttribute.getBaseValue() * healthMult;
-            
-            healthAttribute.setBaseValue(newMax);
-            raider.setHealth(newMax);
-        }
-
-        // Check if becomes Elite
-        if (random.nextDouble() <= plugin.getConfigManager().getEliteSpawnChance()) {
-            makeElite(raider);
-        }
-    }
-
-    private void makeElite(LivingEntity entity) {
-        String prefix = plugin.getConfigManager().getElitePrefix();
-        String currentName = entity.getCustomName() != null ? entity.getCustomName() : entity.getName();
-        
-        entity.setCustomName(plugin.getConfigManager().colorize(prefix + currentName));
-        entity.setCustomNameVisible(true);
-
-        EntityEquipment eq = entity.getEquipment();
-        if (eq != null) {
-            try {
-                eq.setHelmet(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteHelmet())));
-                eq.setChestplate(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteChestplate())));
-                eq.setItemInMainHand(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteWeapon())));
-            } catch (Exception ignored) {
-                // Dobrze przechwycić wyjątek na przypadek błędnej nazwy materiału w configu
-            }
-        }
-    }
-}
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+</project>
