@@ -103,7 +103,7 @@ public class RaidListener implements Listener {
     }
 
     private void applyCustomizations(LivingEntity entity) {
-        // Opóźnienie 1 ticka zapobiega nadpisywaniu HP przez fabryczny silnik rajdu Minecrafta
+        // Opóźnienie 2 ticków pozwala silnikowi gry zakończyć inicjalizację rajdu, zanim nadpiszemy HP
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (entity == null || !entity.isValid()) return;
 
@@ -111,7 +111,7 @@ public class RaidListener implements Listener {
             double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
             double finalMaxHealth = baseHealth * globalMultiplier;
 
-            // Bezpieczne pobieranie atrybutu HP dla różnych wersji serwera
+            // Bezpieczne pobieranie atrybutu HP dla różnych wersji serwera (1.20+ / 1.21+)
             Attribute attrMaxHealth = null;
             try {
                 attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
@@ -124,13 +124,19 @@ public class RaidListener implements Listener {
             if (attrMaxHealth != null) {
                 AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
                 if (maxHealthAttr != null) {
+                    // Usuwamy stare modyfikatory narzucone przez silnik rajdu
+                    maxHealthAttr.getModifiers().forEach(maxHealthAttr::removeModifier);
+                    
+                    // Ustawiamy nową bazę punktów życia
                     maxHealthAttr.setBaseValue(finalMaxHealth);
+                    
+                    // Ustawiamy aktualne życie na pełną nową pulę
                     entity.setHealth(finalMaxHealth);
                 }
             }
 
             entity.setCustomName(null);
             entity.setCustomNameVisible(false);
-        }, 1L);
+        }, 2L);
     }
 }
