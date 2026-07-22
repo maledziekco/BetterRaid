@@ -1,16 +1,21 @@
 package pl.betterraid;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 
 public class RaidListener implements Listener {
 
     private final BetterRaid plugin;
+    private static final String CLONE_KEY = "BR_CLONED";
 
     public RaidListener(BetterRaid plugin) {
         this.plugin = plugin;
@@ -18,27 +23,50 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onRaidSpawn(EntitySpawnEvent event) {
-        // Sprawdzamy czy zespawnowana istota należy do rajdu
         if (event.getEntity() instanceof Raider raider) {
-            
-            // Ignorujemy moby poza aktywnym rajdem
-            if (raider.getRaid() == null) return;
 
-            // Pobieramy z configu ile dodatkowych mobów ma stworzyć (dla +200% ustawiamy 2)
-            int extraCount = plugin.getConfigManager().getExtraMobsMultiplier();
+            // Modyfikujemy statystyki (życie) zespawnowanego moba
+            applyStats(raider);
 
-            World world = raider.getWorld();
-            Location loc = raider.getLocation();
+            // Jeśli mob jest klonem, nie klonujemy go po raz kolejny
+            if (raider.hasMetadata(CLONE_KEY)) return;
 
-            // Pętla spawnuje podaną liczbę dodatkowych potworów (+200% = 2 klony na 1 moba)
-            for (int i = 0; i < extraCount; i++) {
-                world.spawn(loc, raider.getClass());
-            }
+            // Opóźnienie 1 tick (0.05s) - czekamy aż Paper przypisze rajd do moba
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (raider.isDead() || !raider.isValid()) return;
+                if (raider.getRaid() == null) return;
+
+                int extraCount = plugin.getConfigManager().getExtraMobsMultiplier();
+                World world = raider.getWorld();
+                Location loc = raider.getLocation();
+
+                // Spawnowanie dodatkowych +200% mobów
+                for (int i = 0; i < extraCount; i++) {
+                    Raider clone = (Raider) world.spawn(loc, raider.getClass());
+                    clone.setMetadata(CLONE_KEY, new FixedMetadataValue(plugin, true));
+                    applyStats(clone);
+                }
+            }, 1L);
         }
     }
 
     @EventHandler
-    public void onEntityDeath(EntityDeathEvent event) {
-        // Logika po śmierci moba
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        // Zwiększanie obrażeń dla mobów z rajdu
+        if (event.getDamager() instanceof Raider raider) {
+            double damageMultiplier = plugin.getConfigManager().getDamageMultiplier();
+            event.setDamage(event.getDamage() * damageMultiplier);
+        }
+    }
+
+    private void applyStats(Raider raider) {
+        double healthMultiplier = plugin.getConfigManager().getHealthMultiplier();
+        AttributeInstance maxHealthAttr = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+
+        if (maxHealthAttr != null) {
+            double newHealth = maxHealthAttr.getBaseValue() * healthMultiplier;
+            maxHealthAttr.setBaseValue(newHealth);
+            raider.setHealth(newHealth);
+        }
     }
 }
