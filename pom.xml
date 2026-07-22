@@ -1,0 +1,53 @@
+package pl.betterraid.raid;
+
+import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Raider;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
+import pl.betterraid.BetterRaid;
+
+import java.util.Random;
+
+public class RaidManager {
+
+    private final BetterRaid plugin;
+    private final Random random = new Random();
+
+    public RaidManager(BetterRaid plugin) {
+        this.plugin = plugin;
+    }
+
+    public void enhanceRaider(Raider raider) {
+        // Boost health
+        double healthMult = plugin.getConfigManager().getHealthMultiplier();
+        if (raider.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
+            double currentMax = raider.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+            double newMax = currentMax * healthMult;
+            raider.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newMax);
+            raider.setHealth(newMax);
+        }
+
+        // Check if becomes Elite
+        if (random.nextDouble() <= plugin.getConfigManager().getEliteSpawnChance()) {
+            makeElite(raider);
+        }
+    }
+
+    private void makeElite(LivingEntity entity) {
+        String prefix = plugin.getConfigManager().getElitePrefix();
+        String currentName = entity.getCustomName() != null ? entity.getCustomName() : entity.getName();
+        entity.setCustomName(plugin.getConfigManager().colorize(prefix + currentName));
+        entity.setCustomNameVisible(true);
+
+        EntityEquipment eq = entity.getEquipment();
+        if (eq != null) {
+            try {
+                eq.setHelmet(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteHelmet())));
+                eq.setChestplate(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteChestplate())));
+                eq.setItemInMainHand(new ItemStack(Material.valueOf(plugin.getConfigManager().getEliteWeapon())));
+            } catch (Exception ignored) {}
+        }
+    }
+}
