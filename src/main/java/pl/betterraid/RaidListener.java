@@ -7,10 +7,11 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,16 @@ public class RaidListener implements Listener {
         }
     }
 
+    // Dodatkowe zdarzenie przechwytujące każdy spawn moba z rajdu, co uniemożliwia resetowanie HP
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (isRaidMob(entity)) {
+            // Sprawdzamy czy mob jest w pobliżu aktywnego rajdu lub po prostu modyfikujemy jego bazę od razu
+            applyCustomizations(entity);
+        }
+    }
+
     private EntityType getMobTypeForWave(int wave, EntityType fallbackType) {
         int roll = random.nextInt(100);
         int currentSum = 0;
@@ -103,47 +114,30 @@ public class RaidListener implements Listener {
     }
 
     private void applyCustomizations(LivingEntity entity) {
+        if (entity == null || !entity.isValid()) return;
+
         double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
         double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
         double finalMaxHealth = baseHealth * globalMultiplier;
 
-        // Uruchamiamy zadanie powtarzalne, które przez pierwsze 10 ticków (0.5 sekundy) 
-        // co tick pilnuje i wymusza poprawne HP, zapobiegając nadpisywaniu przez silnik rajdu.
-        new BukkitRunnable() {
-            int checks = 0;
+        Attribute attrMaxHealth = null;
+        try {
+            attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
+        } catch (IllegalArgumentException e) {
+            try {
+                attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
+            } catch (IllegalArgumentException ignored) {}
+        }
 
-            @Override
-            public void run() {
-                if (entity == null || !entity.isValid() || entity.isDead() || checks > 10) {
-                    cancel();
-                    return;
-                }
-
-                Attribute attrMaxHealth = null;
-                try {
-                    attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
-                } catch (IllegalArgumentException e) {
-                    try {
-                        attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
-                    } catch (IllegalArgumentException ignored) {}
-                }
-
-                if (attrMaxHealth != null) {
-                    AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
-                    if (maxHealthAttr != null) {
-                        if (maxHealthAttr.getBaseValue() != finalMaxHealth) {
-                            maxHealthAttr.setBaseValue(finalMaxHealth);
-                        }
-                        if (entity.getHealth() < finalMaxHealth) {
-                            entity.setHealth(finalMaxHealth);
-                        }
-                    }
-                }
-
-                entity.setCustomName(null);
-                entity.setCustomNameVisible(false);
-                checks++;
+        if (attrMaxHealth != null) {
+            AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
+            if (maxHealthAttr != null) {
+                maxHealthAttr.setBaseValue(finalMaxHealth);
+                entity.setHealth(finalMaxHealth);
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }
+
+        entity.setCustomName(null);
+        entity.setCustomNameVisible(false);
     }
 }
