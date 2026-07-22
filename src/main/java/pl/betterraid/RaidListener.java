@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,6 @@ public class RaidListener implements Listener {
             default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
         }
 
-        // Jeśli aktualna fala przekracza limit, przerywamy, nie niszcząc rajdu przez clear()
         if (event.getRaid().getSpawnedGroups() > maxWaves) {
             return;
         }
@@ -103,40 +103,47 @@ public class RaidListener implements Listener {
     }
 
     private void applyCustomizations(LivingEntity entity) {
-        // Opóźnienie 2 ticków pozwala silnikowi gry zakończyć inicjalizację rajdu, zanim nadpiszemy HP
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (entity == null || !entity.isValid()) return;
+        double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
+        double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
+        double finalMaxHealth = baseHealth * globalMultiplier;
 
-            double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
-            double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
-            double finalMaxHealth = baseHealth * globalMultiplier;
+        // Uruchamiamy zadanie powtarzalne, które przez pierwsze 10 ticków (0.5 sekundy) 
+        // co tick pilnuje i wymusza poprawne HP, zapobiegając nadpisywaniu przez silnik rajdu.
+        new BukkitRunnable() {
+            int checks = 0;
 
-            // Bezpieczne pobieranie atrybutu HP dla różnych wersji serwera (1.20+ / 1.21+)
-            Attribute attrMaxHealth = null;
-            try {
-                attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
-            } catch (IllegalArgumentException e) {
-                try {
-                    attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
-                } catch (IllegalArgumentException ignored) {}
-            }
-
-            if (attrMaxHealth != null) {
-                AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
-                if (maxHealthAttr != null) {
-                    // Usuwamy stare modyfikatory narzucone przez silnik rajdu
-                    maxHealthAttr.getModifiers().forEach(maxHealthAttr::removeModifier);
-                    
-                    // Ustawiamy nową bazę punktów życia
-                    maxHealthAttr.setBaseValue(finalMaxHealth);
-                    
-                    // Ustawiamy aktualne życie na pełną nową pulę
-                    entity.setHealth(finalMaxHealth);
+            @Override
+            public void run() {
+                if (entity == null || !entity.isValid() || entity.isDead() || checks > 10) {
+                    cancel();
+                    return;
                 }
-            }
 
-            entity.setCustomName(null);
-            entity.setCustomNameVisible(false);
-        }, 2L);
+                Attribute attrMaxHealth = null;
+                try {
+                    attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
+                } catch (IllegalArgumentException e) {
+                    try {
+                        attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
+                    } catch (IllegalArgumentException ignored) {}
+                }
+
+                if (attrMaxHealth != null) {
+                    AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
+                    if (maxHealthAttr != null) {
+                        if (maxHealthAttr.getBaseValue() != finalMaxHealth) {
+                            maxHealthAttr.setBaseValue(finalMaxHealth);
+                        }
+                        if (entity.getHealth() < finalMaxHealth) {
+                            entity.setHealth(finalMaxHealth);
+                        }
+                    }
+                }
+
+                entity.setCustomName(null);
+                entity.setCustomNameVisible(false);
+                checks++;
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
     }
 }
