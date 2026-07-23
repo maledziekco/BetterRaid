@@ -1,10 +1,6 @@
 package pl.betterraid;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import pl.betterraid.commands.BetterRaidCommand;
-package pl.betterraid;
-
-import org.bukkit.plugin.java.JavaPlugin;
 import pl.betterraid.commands.BroadcastCommand;
 
 public final class BetterRaid extends JavaPlugin {
