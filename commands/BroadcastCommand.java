@@ -31,9 +31,12 @@ public class BroadcastCommand implements CommandExecutor {
         String rawMessage = String.join(" ", args);
         String formattedText = ChatColor.translateAlternateColorCodes('&', rawMessage);
 
+        // Główny tekst na środku ekranu
         Component titleComponent = LegacyComponentSerializer.legacySection().deserialize(formattedText);
-        Component subtitleComponent = LegacyComponentSerializer.legacySection().deserialize(ChatColor.YELLOW + "Wiadomość od administracji");
+        // Pusty podtytuł, żeby nic nie zaśmiecało ekranu pod spodem
+        Component subtitleComponent = Component.empty();
 
+        // Czasy: 0.5s wejście, 4s wyświetlanie, 0.5s znikanie
         Title.Times times = Title.Times.times(
                 Duration.ofMillis(500),
                 Duration.ofMillis(4000),
