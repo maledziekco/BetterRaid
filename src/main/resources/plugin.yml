@@ -10,8 +10,15 @@ commands:
     permission: betterraid.admin
     usage: /betterraid <reload|spawnboss>
     aliases: [raid]
+  ogloszenie:
+    description: Wysyla ogloszenie na srodek ekranu graczy
+    permission: betterraid.broadcast
+    usage: /ogloszenie <tekst>
 
 permissions:
   betterraid.admin:
     description: Dostęp do komend administracyjnych BetterRaid
+    default: op
+  betterraid.broadcast:
+    description: Dostęp do wysyłania ogłoszeń na środek ekranu
     default: op
