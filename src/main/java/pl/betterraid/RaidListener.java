@@ -1,8 +1,13 @@
 package pl.betterraid;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -12,20 +17,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
 import org.bukkit.event.raid.RaidStopEvent;
+import org.bukkit.raid.Raid;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class RaidListener implements Listener {
 
     private final BetterRaid plugin;
     private final Random random = new Random();
+    
+    // Mapa przechowująca Boss Bary dla poszczególnych raidów
+    private final Map<Raid, BossBar> raidBossBars = new HashMap<>();
 
     public RaidListener(BetterRaid plugin) {
         this.plugin = plugin;
@@ -33,7 +40,8 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onWaveSpawn(RaidSpawnWaveEvent event) {
-        int badOmenLevel = event.getRaid().getBadOmenLevel();
+        Raid raid = event.getRaid();
+        int badOmenLevel = raid.getBadOmenLevel();
         int maxWaves;
 
         switch (badOmenLevel) {
@@ -44,13 +52,27 @@ public class RaidListener implements Listener {
             default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
         }
 
-        if (event.getRaid().getSpawnedGroups() > maxWaves) {
+        int waveNumber = raid.getSpawnedGroups();
+        if (waveNumber > maxWaves) {
             return;
         }
 
+        // Obsługa i tworzenie Boss Bara dla tego rajdu
+        BossBar bossBar = raidBossBars.computeIfAbsent(raid, r -> {
+            BossBar bar = Bukkit.createBossBar(
+                    ChatColor.RED + "⚔ Rajd w toku (Fala " + waveNumber + ") ⚔", 
+                    BarColor.RED, 
+                    BarStyle.SEGMENTED_10
+            );
+            bar.setVisible(true);
+            return bar;
+        });
+
+        // Dodaj graczy w pobliżu centrum rajdu do Boss Bara
+        updateBossBarView(raid, bossBar, waveNumber);
+
         List<Raider> originalRaiders = new ArrayList<>(event.getRaiders());
         int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier();
-        int waveNumber = event.getRaid().getSpawnedGroups();
 
         for (Raider raider : originalRaiders) {
             applyCustomizations(raider);
@@ -68,14 +90,42 @@ public class RaidListener implements Listener {
                 }
             }
         }
+        
+        // Zaktualizuj postęp paska po zespawnowaniu dodatkowych mobów
+        updateBossBarProgress(raid, bossBar, waveNumber);
+    }
+
+    // Aktualizacja paska, gdy mob z rajdu ginie
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (isRaidMob(entity)) {
+            // Sprawdź czy entity znajduje się w jakimś aktywnym raidzie na świecie
+            for (Map.Entry<Raid, BossBar> entry : raidBossBars.entrySet()) {
+                Raid raid = entry.getKey();
+                if (raid.getRaiders().contains(entity) || entity.getWorld().equals(raid.getLocation().getWorld())) {
+                    // Aktualizujemy postęp paska dla tego rajdu
+                    updateBossBarProgress(raid, entry.getValue(), raid.getSpawnedGroups());
+                    break;
+                }
+            }
+        }
     }
 
     @EventHandler
     public void onRaidStop(RaidStopEvent event) {
+        Raid raid = event.getRaid();
         if (event.getReason() == RaidStopEvent.Reason.TIMEOUT) {
             try {
                 event.getRaid().getClass().getMethod("setBadOmenLevel", int.class).invoke(event.getRaid(), event.getRaid().getBadOmenLevel());
+                return; // Nie usuwamy bara jeśli przedłużamy rajd
             } catch (Exception ignored) {}
+        }
+
+        // Usuń Boss Bar, gdy rajd się kończy
+        BossBar bossBar = raidBossBars.remove(raid);
+        if (bossBar != null) {
+            bossBar.removeAll();
         }
     }
 
@@ -125,6 +175,42 @@ public class RaidListener implements Listener {
         return entity instanceof Raider || entity.getType() == EntityType.WITCH;
     }
 
+    private void updateBossBarView(Raid raid, BossBar bossBar, int waveNumber) {
+        Location center = raid.getLocation();
+        if (center == null || center.getWorld() == null) return;
+
+        bossBar.setTitle(ChatColor.DARK_RED + "⚡ ATAK NA WIOSKĘ — Fala " + waveNumber + " ⚡");
+
+        for (Player player : center.getWorld().getPlayers()) {
+            if (player.getLocation().distanceSquared(center) <= 65536) { // 256 bloków radius
+                if (!bossBar.getPlayers().contains(player)) {
+                    bossBar.addPlayer(player);
+                }
+            } else {
+                bossBar.removePlayer(player);
+            }
+        }
+    }
+
+    private void updateBossBarProgress(Raid raid, BossBar bossBar, int waveNumber) {
+        updateBossBarView(raid, bossBar, waveNumber);
+        
+        int totalRaiders = raid.getRaiders().size();
+        if (totalRaiders <= 0) {
+            bossBar.setProgress(0.0);
+            return;
+        }
+
+        // Obliczamy przybliżony postęp (możesz dostosować wedle uznania)
+        // Jako że silnik gry trzyma listę żyjących raiderów w `raid.getRaiders()`, 
+        // możemy bazować na ich liczbie lub zdrowiu.
+        long aliveCount = raid.getRaiders().stream().filter(LivingEntity::isValid).count();
+        
+        // Załóżmy maksymalnie np. 50 mobów jako pełny pasek (1.0) lub dynamicznie
+        double progress = Math.min(1.0, (double) aliveCount / Math.max(1.0, (double) totalRaiders));
+        bossBar.setProgress(Math.max(0.0, progress));
+    }
+
     private void applyCustomizations(LivingEntity entity) {
         if (entity == null || !entity.isValid()) return;
 
@@ -152,12 +238,10 @@ public class RaidListener implements Listener {
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
 
-        // NATYCHMIASTOWE AGRO + zabezpieczenie w pętli
+        // Natychmiastowe i ciągłe agro dla mobów
         if (entity instanceof Mob mob) {
-            // 1. Znajdź gracza i ustaw cel OD RAZU w tym ticku
             findAndSetTarget(mob);
 
-            // 2. Pętla pilnująca celu (jeśli gracz ucieknie lub zginie)
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -176,7 +260,6 @@ public class RaidListener implements Listener {
                 .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
                 .orElse(null);
 
-        // Jeśli gracz jest w promieniu 48 bloków (48 * 48 = 2304), rzuć się na niego
         if (target != null && target.getLocation().distanceSquared(mob.getLocation()) <= 2304) {
             mob.setTarget(target);
         }
