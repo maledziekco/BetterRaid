@@ -1,14 +1,9 @@
 package pl.betterraid;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -19,22 +14,21 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
 import org.bukkit.event.raid.RaidStopEvent;
-import org.bukkit.raid.Raid;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
 
 public class RaidListener implements Listener {
 
     private final BetterRaid plugin;
     private final Random random = new Random();
-    
-    private final Map<Raid, BossBar> raidBossBars = new HashMap<>();
 
     public RaidListener(BetterRaid plugin) {
         this.plugin = plugin;
@@ -42,86 +36,61 @@ public class RaidListener implements Listener {
 
     @EventHandler
     public void onWaveSpawn(RaidSpawnWaveEvent event) {
-        Raid raid = event.getRaid();
-        int badOmenLevel = raid.getBadOmenLevel();
-        int maxWaves;
+        try {
+            Object raid = event.getClass().getMethod("getRaid").invoke(event);
+            if (raid == null) return;
 
-        switch (badOmenLevel) {
-            case 1: maxWaves = 4; break;
-            case 2: maxWaves = 6; break;
-            case 3: maxWaves = 8; break;
-            case 4: maxWaves = 10; break;
-            default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
-        }
+            int badOmenLevel = (int) raid.getClass().getMethod("getBadOmenLevel").invoke(raid);
+            int spawnedGroups = (int) raid.getClass().getMethod("getSpawnedGroups").invoke(raid);
+            
+            int maxWaves;
+            switch (badOmenLevel) {
+                case 1: maxWaves = 4; break;
+                case 2: maxWaves = 6; break;
+                case 3: maxWaves = 8; break;
+                case 4: maxWaves = 10; break;
+                default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
+            }
 
-        int waveNumber = raid.getSpawnedGroups();
-        if (waveNumber > maxWaves) {
-            return;
-        }
+            if (spawnedGroups > maxWaves) {
+                return;
+            }
 
-        BossBar bossBar = raidBossBars.computeIfAbsent(raid, r -> {
-            BossBar bar = Bukkit.createBossBar(
-                    ChatColor.RED + "⚔ Rajd w toku (Fala " + waveNumber + ") ⚔", 
-                    BarColor.RED, 
-                    BarStyle.SEGMENTED_10
-            );
-            bar.setVisible(true);
-            return bar;
-        });
+            @SuppressWarnings("unchecked")
+            List<Raider> originalRaiders = new ArrayList<>((List<Raider>) raid.getClass().getMethod("getRaiders").invoke(raid));
+            int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier();
 
-        updateBossBarView(raid, bossBar, waveNumber);
+            for (Raider raider : originalRaiders) {
+                applyCustomizations(raider);
 
-        List<Raider> originalRaiders = new ArrayList<>(event.getRaiders());
-        int extraMultiplier = plugin.getConfigManager().getExtraMobsMultiplier();
+                Location loc = raider.getLocation();
 
-        for (Raider raider : originalRaiders) {
-            applyCustomizations(raider);
+                for (int i = 0; i < extraMultiplier; i++) {
+                    if (loc.getWorld() != null) {
+                        Location spawnLoc = loc.clone().add((Math.random() - 0.5) * 3, 0, (Math.random() - 0.5) * 3);
+                        EntityType spawnType = getMobTypeForWave(spawnedGroups, raider.getType());
 
-            Location loc = raider.getLocation();
-
-            for (int i = 0; i < extraMultiplier; i++) {
-                if (loc.getWorld() != null) {
-                    Location spawnLoc = loc.clone().add((Math.random() - 0.5) * 3, 0, (Math.random() - 0.5) * 3);
-                    EntityType spawnType = getMobTypeForWave(waveNumber, raider.getType());
-
-                    if (loc.getWorld().spawnEntity(spawnLoc, spawnType) instanceof LivingEntity extraMob) {
-                        applyCustomizations(extraMob);
+                        if (loc.getWorld().spawnEntity(spawnLoc, spawnType) instanceof LivingEntity extraMob) {
+                            applyCustomizations(extraMob);
+                        }
                     }
                 }
             }
-        }
-        
-        updateBossBarProgress(raid, bossBar, waveNumber);
-    }
-
-    @EventHandler
-    public void onEntityDeath(EntityDeathEvent event) {
-        LivingEntity entity = event.getEntity();
-        if (isRaidMob(entity)) {
-            for (Map.Entry<Raid, BossBar> entry : raidBossBars.entrySet()) {
-                Raid raid = entry.getKey();
-                if (raid.getRaiders().contains(entity) || entity.getWorld().equals(raid.getLocation().getWorld())) {
-                    updateBossBarProgress(raid, entry.getValue(), raid.getSpawnedGroups());
-                    break;
-                }
-            }
-        }
+        } catch (Exception ignored) {}
     }
 
     @EventHandler
     public void onRaidStop(RaidStopEvent event) {
-        Raid raid = event.getRaid();
-        if (event.getReason() == RaidStopEvent.Reason.TIMEOUT) {
-            try {
-                event.getRaid().getClass().getMethod("setBadOmenLevel", int.class).invoke(event.getRaid(), event.getRaid().getBadOmenLevel());
-                return;
-            } catch (Exception ignored) {}
-        }
-
-        BossBar bossBar = raidBossBars.remove(raid);
-        if (bossBar != null) {
-            bossBar.removeAll();
-        }
+        try {
+            Object reason = event.getClass().getMethod("getReason").invoke(event);
+            if (reason != null && reason.toString().equals("TIMEOUT")) {
+                Object raid = event.getClass().getMethod("getRaid").invoke(event);
+                if (raid != null) {
+                    int badOmenLevel = (int) raid.getClass().getMethod("getBadOmenLevel").invoke(raid);
+                    raid.getClass().getMethod("setBadOmenLevel", int.class).invoke(raid, badOmenLevel);
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -164,11 +133,9 @@ public class RaidListener implements Listener {
             double specificMultiplier = plugin.getConfigManager().getMobDamageMultiplier(damager.getType());
             event.setDamage(event.getDamage() * specificMultiplier);
 
-            // Dodatkowa mechanika taranowania Ravagera (Pomysł nr 4):
-            // Kiedy Ravager uderza gracza w zwarciu, zadaje dodatkowy impet odrzutu
             if (damager instanceof Ravager && event.getEntity() instanceof Player player) {
                 Vector direction = player.getLocation().toVector().subtract(damager.getLocation().toVector()).normalize();
-                player.setVelocity(direction.multiply(1.2).setY(0.5)); // Wyrzuca gracza w górę i w tył
+                player.setVelocity(direction.multiply(1.2).setY(0.5));
                 player.getWorld().playSound(player.getLocation(), Sound.ENTITY_RAVAGER_ATTACK, 1.0f, 0.5f);
             }
         }
@@ -176,37 +143,6 @@ public class RaidListener implements Listener {
 
     private boolean isRaidMob(LivingEntity entity) {
         return entity instanceof Raider || entity.getType() == EntityType.WITCH;
-    }
-
-    private void updateBossBarView(Raid raid, BossBar bossBar, int waveNumber) {
-        Location center = raid.getLocation();
-        if (center == null || center.getWorld() == null) return;
-
-        bossBar.setTitle(ChatColor.DARK_RED + "⚡ ATAK NA WIOSKĘ — Fala " + waveNumber + " ⚡");
-
-        for (Player player : center.getWorld().getPlayers()) {
-            if (player.getLocation().distanceSquared(center) <= 65536) {
-                if (!bossBar.getPlayers().contains(player)) {
-                    bossBar.addPlayer(player);
-                }
-            } else {
-                bossBar.removePlayer(player);
-            }
-        }
-    }
-
-    private void updateBossBarProgress(Raid raid, BossBar bossBar, int waveNumber) {
-        updateBossBarView(raid, bossBar, waveNumber);
-        
-        int totalRaiders = raid.getRaiders().size();
-        if (totalRaiders <= 0) {
-            bossBar.setProgress(0.0);
-            return;
-        }
-
-        long aliveCount = raid.getRaiders().stream().filter(LivingEntity::isValid).count();
-        double progress = Math.min(1.0, (double) aliveCount / Math.max(1.0, (double) totalRaiders));
-        bossBar.setProgress(Math.max(0.0, progress));
     }
 
     private void applyCustomizations(LivingEntity entity) {
@@ -248,13 +184,12 @@ public class RaidListener implements Listener {
                     }
                     findAndSetTarget(mob);
 
-                    // Specjalna zdolność taranowania Ravagera (Co jakiś czas szuka graczy blisko siebie i ich odrzuca)
                     if (mob instanceof Ravager && mob.getTarget() instanceof Player target) {
-                        if (mob.getLocation().distanceSquared(target.getLocation()) <= 16) { // 4 bloki
-                            if (random.nextInt(100) < 25) { // 25% szansy co sekundę przy bliskim kontakcie
+                        if (mob.getLocation().distanceSquared(target.getLocation()) <= 16) {
+                            if (random.nextInt(100) < 25) {
                                 Vector knockback = target.getLocation().toVector().subtract(mob.getLocation().toVector()).normalize();
                                 target.setVelocity(knockback.multiply(1.5).setY(0.6));
-                                target.damage(4.0, mob); // Dodatkowe uderzenie taranem
+                                target.damage(4.0, mob);
                                 mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_RAVAGER_ROAR, 0.8f, 1.0f);
                             }
                         }
