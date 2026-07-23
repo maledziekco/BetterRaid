@@ -3,6 +3,7 @@ package pl.betterraid;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.boss.BarColor;
@@ -12,6 +13,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Ravager;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,6 +25,7 @@ import org.bukkit.event.raid.RaidSpawnWaveEvent;
 import org.bukkit.event.raid.RaidStopEvent;
 import org.bukkit.raid.Raid;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -31,7 +34,6 @@ public class RaidListener implements Listener {
     private final BetterRaid plugin;
     private final Random random = new Random();
     
-    // Mapa przechowująca Boss Bary dla poszczególnych raidów
     private final Map<Raid, BossBar> raidBossBars = new HashMap<>();
 
     public RaidListener(BetterRaid plugin) {
@@ -57,7 +59,6 @@ public class RaidListener implements Listener {
             return;
         }
 
-        // Obsługa i tworzenie Boss Bara dla tego rajdu
         BossBar bossBar = raidBossBars.computeIfAbsent(raid, r -> {
             BossBar bar = Bukkit.createBossBar(
                     ChatColor.RED + "⚔ Rajd w toku (Fala " + waveNumber + ") ⚔", 
@@ -68,7 +69,6 @@ public class RaidListener implements Listener {
             return bar;
         });
 
-        // Dodaj graczy w pobliżu centrum rajdu do Boss Bara
         updateBossBarView(raid, bossBar, waveNumber);
 
         List<Raider> originalRaiders = new ArrayList<>(event.getRaiders());
@@ -91,20 +91,16 @@ public class RaidListener implements Listener {
             }
         }
         
-        // Zaktualizuj postęp paska po zespawnowaniu dodatkowych mobów
         updateBossBarProgress(raid, bossBar, waveNumber);
     }
 
-    // Aktualizacja paska, gdy mob z rajdu ginie
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
         if (isRaidMob(entity)) {
-            // Sprawdź czy entity znajduje się w jakimś aktywnym raidzie na świecie
             for (Map.Entry<Raid, BossBar> entry : raidBossBars.entrySet()) {
                 Raid raid = entry.getKey();
                 if (raid.getRaiders().contains(entity) || entity.getWorld().equals(raid.getLocation().getWorld())) {
-                    // Aktualizujemy postęp paska dla tego rajdu
                     updateBossBarProgress(raid, entry.getValue(), raid.getSpawnedGroups());
                     break;
                 }
@@ -118,11 +114,10 @@ public class RaidListener implements Listener {
         if (event.getReason() == RaidStopEvent.Reason.TIMEOUT) {
             try {
                 event.getRaid().getClass().getMethod("setBadOmenLevel", int.class).invoke(event.getRaid(), event.getRaid().getBadOmenLevel());
-                return; // Nie usuwamy bara jeśli przedłużamy rajd
+                return;
             } catch (Exception ignored) {}
         }
 
-        // Usuń Boss Bar, gdy rajd się kończy
         BossBar bossBar = raidBossBars.remove(raid);
         if (bossBar != null) {
             bossBar.removeAll();
@@ -168,6 +163,14 @@ public class RaidListener implements Listener {
         if (event.getDamager() instanceof LivingEntity damager && isRaidMob(damager)) {
             double specificMultiplier = plugin.getConfigManager().getMobDamageMultiplier(damager.getType());
             event.setDamage(event.getDamage() * specificMultiplier);
+
+            // Dodatkowa mechanika taranowania Ravagera (Pomysł nr 4):
+            // Kiedy Ravager uderza gracza w zwarciu, zadaje dodatkowy impet odrzutu
+            if (damager instanceof Ravager && event.getEntity() instanceof Player player) {
+                Vector direction = player.getLocation().toVector().subtract(damager.getLocation().toVector()).normalize();
+                player.setVelocity(direction.multiply(1.2).setY(0.5)); // Wyrzuca gracza w górę i w tył
+                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_RAVAGER_ATTACK, 1.0f, 0.5f);
+            }
         }
     }
 
@@ -182,7 +185,7 @@ public class RaidListener implements Listener {
         bossBar.setTitle(ChatColor.DARK_RED + "⚡ ATAK NA WIOSKĘ — Fala " + waveNumber + " ⚡");
 
         for (Player player : center.getWorld().getPlayers()) {
-            if (player.getLocation().distanceSquared(center) <= 65536) { // 256 bloków radius
+            if (player.getLocation().distanceSquared(center) <= 65536) {
                 if (!bossBar.getPlayers().contains(player)) {
                     bossBar.addPlayer(player);
                 }
@@ -201,12 +204,7 @@ public class RaidListener implements Listener {
             return;
         }
 
-        // Obliczamy przybliżony postęp (możesz dostosować wedle uznania)
-        // Jako że silnik gry trzyma listę żyjących raiderów w `raid.getRaiders()`, 
-        // możemy bazować na ich liczbie lub zdrowiu.
         long aliveCount = raid.getRaiders().stream().filter(LivingEntity::isValid).count();
-        
-        // Załóżmy maksymalnie np. 50 mobów jako pełny pasek (1.0) lub dynamicznie
         double progress = Math.min(1.0, (double) aliveCount / Math.max(1.0, (double) totalRaiders));
         bossBar.setProgress(Math.max(0.0, progress));
     }
@@ -238,7 +236,6 @@ public class RaidListener implements Listener {
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
 
-        // Natychmiastowe i ciągłe agro dla mobów
         if (entity instanceof Mob mob) {
             findAndSetTarget(mob);
 
@@ -250,6 +247,18 @@ public class RaidListener implements Listener {
                         return;
                     }
                     findAndSetTarget(mob);
+
+                    // Specjalna zdolność taranowania Ravagera (Co jakiś czas szuka graczy blisko siebie i ich odrzuca)
+                    if (mob instanceof Ravager && mob.getTarget() instanceof Player target) {
+                        if (mob.getLocation().distanceSquared(target.getLocation()) <= 16) { // 4 bloki
+                            if (random.nextInt(100) < 25) { // 25% szansy co sekundę przy bliskim kontakcie
+                                Vector knockback = target.getLocation().toVector().subtract(mob.getLocation().toVector()).normalize();
+                                target.setVelocity(knockback.multiply(1.5).setY(0.6));
+                                target.damage(4.0, mob); // Dodatkowe uderzenie taranem
+                                mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_RAVAGER_ROAR, 0.8f, 1.0f);
+                            }
+                        }
+                    }
                 }
             }.runTaskTimer(plugin, 0L, 20L);
         }
