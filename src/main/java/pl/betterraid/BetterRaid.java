@@ -2,6 +2,9 @@ package pl.betterraid;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import pl.betterraid.commands.BetterRaidCommand;
+package pl.betterraid;
+
+import org.bukkit.plugin.java.JavaPlugin;
 import pl.betterraid.commands.BroadcastCommand;
 
 public final class BetterRaid extends JavaPlugin {
@@ -31,7 +34,6 @@ public final class BetterRaid extends JavaPlugin {
         getLogger().info("Plugin BetterRaid został wyłączony.");
     }
 
-    // Metody getters wymagane przez RaidListener oraz BetterRaidCommand
     public ConfigManager getConfigManager() {
         return configManager;
     }
