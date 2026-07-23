@@ -19,3 +19,4 @@ public final class BetterRaid extends JavaPlugin {
     public void onDisable() {
         getLogger().info("Plugin BetterRaid został wyłączony.");
     }
+}
