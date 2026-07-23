@@ -33,7 +33,6 @@ public class BroadcastCommand implements CommandExecutor {
 
         // Główny tekst na środku ekranu
         Component titleComponent = LegacyComponentSerializer.legacySection().deserialize(formattedText);
-        // Pusty podtytuł, żeby nic nie zaśmiecało ekranu pod spodem
         Component subtitleComponent = Component.empty();
 
         // Czasy: 0.5s wejście, 4s wyświetlanie, 0.5s znikanie

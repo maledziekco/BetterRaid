@@ -1,37 +1,21 @@
 package pl.betterraid;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import pl.betterraid.commands.BroadcastCommand;
 
-public class BetterRaid extends JavaPlugin {
-
-    private ConfigManager configManager;
-    private RaidManager raidManager;
-    private BossManager bossManager;
-    private RewardManager rewardManager;
+public final class BetterRaid extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        this.configManager = new ConfigManager(this);
-        this.raidManager = new RaidManager(this);
-        this.bossManager = new BossManager(this);
-        this.rewardManager = new RewardManager(this);
-
-        if (getCommand("raid") != null) {
-            getCommand("raid").setExecutor(new BetterRaidCommand(this));
+        // Rejestracja komendy /ogloszenie
+        if (getCommand("ogloszenie") != null) {
+            getCommand("ogloszenie").setExecutor(new BroadcastCommand());
         }
-
-        getServer().getPluginManager().registerEvents(new RaidListener(this), this);
-
-        getLogger().info("Plugin BetterRaid zostal pomyslnie wlaczony!");
+        
+        getLogger().info("Plugin BetterRaid został pomyślnie uruchomiony!");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("Plugin BetterRaid zostal wylaczony.");
+        getLogger().info("Plugin BetterRaid został wyłączony.");
     }
-
-    public ConfigManager getConfigManager() { return configManager; }
-    public RaidManager getRaidManager() { return raidManager; }
-    public BossManager getBossManager() { return bossManager; }
-    public RewardManager getRewardManager() { return rewardManager; }
-}
