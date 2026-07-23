@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.raid.RaidSpawnWaveEvent;
+import org.bukkit.event.raid.RaidStopEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
@@ -66,6 +67,15 @@ public class RaidListener implements Listener {
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onRaidStop(RaidStopEvent event) {
+        if (event.getReason() == RaidStopEvent.Reason.TIMEOUT) {
+            try {
+                event.getRaid().getClass().getMethod("setBadOmenLevel", int.class).invoke(event.getRaid(), event.getRaid().getBadOmenLevel());
+            } catch (Exception ignored) {}
         }
     }
 
@@ -142,8 +152,12 @@ public class RaidListener implements Listener {
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
 
-        // Agresywne wymuszanie agro co 1 sekundę (20 ticków)
+        // NATYCHMIASTOWE AGRO + zabezpieczenie w pętli
         if (entity instanceof Mob mob) {
+            // 1. Znajdź gracza i ustaw cel OD RAZU w tym ticku
+            findAndSetTarget(mob);
+
+            // 2. Pętla pilnująca celu (jeśli gracz ucieknie lub zginie)
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -151,16 +165,20 @@ public class RaidListener implements Listener {
                         cancel();
                         return;
                     }
-
-                    Player target = mob.getWorld().getPlayers().stream()
-                            .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
-                            .orElse(null);
-
-                    if (target != null && target.getLocation().distanceSquared(mob.getLocation()) <= 2304) {
-                        mob.setTarget(target);
-                    }
+                    findAndSetTarget(mob);
                 }
             }.runTaskTimer(plugin, 0L, 20L);
+        }
+    }
+
+    private void findAndSetTarget(Mob mob) {
+        Player target = mob.getWorld().getPlayers().stream()
+                .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(mob.getLocation())))
+                .orElse(null);
+
+        // Jeśli gracz jest w promieniu 48 bloków (48 * 48 = 2304), rzuć się na niego
+        if (target != null && target.getLocation().distanceSquared(mob.getLocation()) <= 2304) {
+            mob.setTarget(target);
         }
     }
 }
