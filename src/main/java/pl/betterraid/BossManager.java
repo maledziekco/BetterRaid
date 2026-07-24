@@ -30,7 +30,14 @@ public class BossManager {
         double multiplier = plugin.getConfigManager().getHealthMultiplier();
         double finalHealth = baseHp * multiplier;
 
-        setupMobHealthAndTarget(entity, finalHealth, null);
+        // Ustawiamy HP od razu przy spawnie
+        AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxHealthAttr != null) {
+            maxHealthAttr.setBaseValue(finalHealth);
+            entity.setHealth(finalHealth);
+        }
+
+        setupMobTarget(entity, null);
         return entity;
     }
 
@@ -42,39 +49,28 @@ public class BossManager {
     }
 
     /**
-     * Ustawia HP z configu oraz nadaje natychmiastowe agro na gracza.
+     * Nadaje natychmiastowe agro na gracza.
      */
-    public void setupMobHealthAndTarget(LivingEntity entity, double configHealth, Player targetPlayer) {
+    public void setupMobTarget(LivingEntity entity, Player targetPlayer) {
         if (entity == null || !entity.isValid()) return;
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (entity != null && entity.isValid()) {
+            if (entity != null && entity.isValid() && entity instanceof Mob) {
+                Mob mob = (Mob) entity;
                 
-                // 1. Ustawienie HP z configu
-                AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-                if (maxHealthAttr != null) {
-                    maxHealthAttr.setBaseValue(configHealth);
-                    entity.setHealth(configHealth);
-                }
-
-                // 2. Nadanie natychmiastowego AGRO
-                if (entity instanceof Mob) {
-                    Mob mob = (Mob) entity;
+                if (targetPlayer != null && targetPlayer.isOnline()) {
+                    mob.setTarget(targetPlayer);
+                } else {
+                    Player nearest = entity.getWorld().getPlayers().stream()
+                            .filter(p -> p.getLocation().distanceSquared(entity.getLocation()) <= 32 * 32)
+                            .min((p1, p2) -> Double.compare(
+                                    p1.getLocation().distanceSquared(entity.getLocation()),
+                                    p2.getLocation().distanceSquared(entity.getLocation())
+                            ))
+                            .orElse(null);
                     
-                    if (targetPlayer != null && targetPlayer.isOnline()) {
-                        mob.setTarget(targetPlayer);
-                    } else {
-                        Player nearest = entity.getWorld().getPlayers().stream()
-                                .filter(p -> p.getLocation().distanceSquared(entity.getLocation()) <= 32 * 32)
-                                .min((p1, p2) -> Double.compare(
-                                        p1.getLocation().distanceSquared(entity.getLocation()),
-                                        p2.getLocation().distanceSquared(entity.getLocation())
-                                ))
-                                .orElse(null);
-                        
-                        if (nearest != null) {
-                            mob.setTarget(nearest);
-                        }
+                    if (nearest != null) {
+                        mob.setTarget(nearest);
                     }
                 }
             }
