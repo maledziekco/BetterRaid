@@ -1,6 +1,6 @@
 package pl.betterraid;
 
-import org.йын.plugin.java.JavaPlugin; // <- jeśli używasz standardowego spigota, upewnij się że masz import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.plugin.java.JavaPlugin;
 
 public final class BetterRaid extends JavaPlugin {
 
@@ -10,24 +10,22 @@ public final class BetterRaid extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // 1. Inicjalizacja menedżerów
         this.configManager = new ConfigManager(this);
         this.bossManager = new BossManager(this);
         this.raidManager = new RaidManager(this);
 
-        // 2. Rejestracja komendy
         if (getCommand("betterraid") != null) {
             BetterRaidCommand commandHandler = new BetterRaidCommand(this);
             getCommand("betterraid").setExecutor(commandHandler);
             getCommand("betterraid").setTabCompleter(commandHandler);
         }
 
-        getLogger().info("BetterRaid został pomyślnie włączony!");
+        getLogger().info("BetterRaid zostal pomyslnie wlaczony!");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("BetterRaid został wyłączony.");
+        getLogger().info("BetterRaid zostal wylaczony.");
     }
 
     public ConfigManager getConfigManager() {
