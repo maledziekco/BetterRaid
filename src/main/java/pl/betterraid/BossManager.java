@@ -1,8 +1,10 @@
 package pl.betterraid;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -16,14 +18,33 @@ public class BossManager {
     }
 
     /**
-     * Metoda do spawnowania/konfiguracji moba rajdowego.
-     * Ustawia mu HP z configu oraz nadaje natychmiastowe agro na gracza.
+     * Spawnuje bossa (np. Pillagera lub Ravagera) w danej lokalizacji.
+     */
+    public LivingEntity spawnBoss(Location location) {
+        if (location == dirnameNull(location)) return null; // bezpieczeństwo
+        
+        // Możesz zmienić EntityType na taki, jaki ma być Twoim bossem (np. PILLAGER, RAVAGER, VINDICATOR)
+        LivingEntity boss = (LivingEntity) location.getWorld().spawnEntity(location, EntityType.PILLAGER);
+        
+        // Pobieramy HP z configu (domyślnie np. 100.0, zmień metodę pod swój ConfigManager jeśli nazywa się inaczej)
+        double health = plugin.getConfigManager() != null ? 100.0 : 100.0; 
+        
+        // Konfigurujemy jego HP oraz agro
+        setupRaidMob(boss, health, null);
+        
+        return boss;
+    }
+
+    private Location dirnameNull(Location loc) {
+        return loc;
+    }
+
+    /**
+     * Ustawia HP z configu oraz nadaje natychmiastowe agro na gracza.
      */
     public void setupRaidMob(LivingEntity entity, double configHealth, Player targetPlayer) {
         if (entity == null || !entity.isValid()) return;
 
-        // Używamy opóźnienia 1 tick (1/20 sekundy), żeby silnik gry 
-        // nie nadpisał domyślnych statystyk moba tuż po jego zespawnowaniu.
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (entity != null && entity.isValid()) {
                 
@@ -38,12 +59,9 @@ public class BossManager {
                 if (entity instanceof Mob) {
                     Mob mob = (Mob) entity;
                     
-                    // Jeśli podano konkretnego gracza, atakuje go. 
-                    // Jeśli nie, szuka najbliższego gracza w pobliżu.
                     if (targetPlayer != null && targetPlayer.isOnline()) {
                         mob.setTarget(targetPlayer);
                     } else {
-                        // Znajdź najbliższego gracza w promieniu 32 bloków
                         Player nearest = entity.getWorld().getPlayers().stream()
                                 .filter(p -> p.getLocation().distanceSquared(entity.getLocation()) <= 32 * 32)
                                 .min((p1, p2) -> Double.compare(
