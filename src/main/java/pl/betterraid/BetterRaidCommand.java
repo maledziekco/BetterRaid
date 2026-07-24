@@ -32,17 +32,8 @@ public class BetterRaidCommand implements CommandExecutor, TabCompleter {
 
         if (args.length > 0 && args[0].equalsIgnoreCase("spawnboss")) {
             if (sender instanceof Player player) {
-                // 1. Pobieramy WSZYSTKO bezpośrednio z configu
-                int amount = plugin.getConfigManager().getRaidMobAmount();
-                double health = plugin.getConfigManager().getBossHealth();
-                
-                // 2. Spawnowamy dokładnie tyle mobów i z takim HP, jakie są w configu
-                plugin.getBossManager().spawnRaidBosses(player.getLocation(), amount, health);
-                
-                // 3. Informujemy gracza
-                player.sendMessage(plugin.getConfigManager().colorize(
-                    plugin.getConfigManager().getPrefix() + "&aRozpoczęto rajd! Zespawnowano &e" + amount + " &amobów z HP: &e" + health
-                ));
+                // Uruchamiamy falę 1 przez RaidManager, który poprawnie pobiera dane z configu
+                plugin.getRaidManager().startRaidWave(player, 1);
             } else {
                 sender.sendMessage("Tę komendę może wykonać tylko gracz.");
             }
