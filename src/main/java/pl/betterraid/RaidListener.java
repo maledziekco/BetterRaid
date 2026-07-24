@@ -152,6 +152,7 @@ public class RaidListener implements Listener {
         double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
         double finalMaxHealth = baseHealth * globalMultiplier;
 
+        // Bezpieczne pobieranie atrybutu Max Health dla różnych wersji silnika
         Attribute attrMaxHealth = null;
         try {
             attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
