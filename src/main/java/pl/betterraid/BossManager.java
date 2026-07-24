@@ -25,16 +25,22 @@ public class BossManager {
 
         LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, type);
         
-        // Pobieramy HP zgodnie z Twoim ConfigManagerem
+        // Pobieramy HP zgodnie z ConfigManagerem
         double baseHp = plugin.getConfigManager().getMobBaseHealth(type);
         double multiplier = plugin.getConfigManager().getHealthMultiplier();
         double finalHealth = baseHp * multiplier;
+
+        // DEBUG: Sprawdzenie w konsoli, co dokładnie się liczy i ustawia
+        plugin.getLogger().info("SPAWN MOB: " + type.name() + " | Config HP: " + baseHp + " | Multiplier: " + multiplier + " | Obliczone HP: " + finalHealth);
 
         // Ustawiamy HP od razu przy spawnie
         AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHealthAttr != null) {
             maxHealthAttr.setBaseValue(finalHealth);
             entity.setHealth(finalHealth);
+            
+            // DEBUG: Potwierdzenie przypisania w grze
+            plugin.getLogger().info("USTAWIONO HP! Aktualne Max HP moba: " + maxHealthAttr.getValue() + " | Aktualne HP: " + entity.getHealth());
         }
 
         setupMobTarget(entity, null);
