@@ -32,8 +32,11 @@ public class BetterRaidCommand implements CommandExecutor, TabCompleter {
 
         if (args.length > 0 && args[0].equalsIgnoreCase("spawnboss")) {
             if (sender instanceof Player player) {
-                plugin.getBossManager().spawnBoss(player.getLocation());
-                player.sendMessage(plugin.getConfigManager().colorize(plugin.getConfigManager().getPrefix() + "&aZespawnowano Bossa!"));
+                // Pobieramy HP bezpośrednio z configu i spawnujemy bossa
+                double health = plugin.getConfigManager().getBossHealth();
+                
+                plugin.getBossManager().spawnBoss(player.getLocation(), health);
+                player.sendMessage(plugin.getConfigManager().colorize(plugin.getConfigManager().getPrefix() + "&aZespawnowano Bossa z HP: &e" + health));
             } else {
                 sender.sendMessage("Tę komendę może wykonać tylko gracz.");
             }
