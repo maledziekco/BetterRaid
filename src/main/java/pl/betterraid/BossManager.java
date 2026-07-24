@@ -18,48 +18,39 @@ public class BossManager {
     }
 
     /**
-     * Spawnuje określoną liczbę bossów/mobów z configu wokół podanej lokalizacji.
+     * Spawnuje moba z rajdu, pobierając jego HP bezpośrednio z configu (bazowe HP * mnożnik).
      */
-    public void spawnRaidBosses(Location location, int amount, double health) {
-        if (location == null || location.getWorld() == null) return;
+    public LivingEntity spawnRaidMob(Location location, EntityType type) {
+        if (location == null || location.getWorld() == null) return null;
 
-        for (int i = 0; i < amount; i++) {
-            LivingEntity boss = (LivingEntity) location.getWorld().spawnEntity(location, EntityType.PILLAGER);
-            setupRaidMob(boss, health, null);
-        }
+        LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, type);
+        
+        // Pobieramy HP zgodnie z Twoim ConfigManagerem
+        double baseHp = plugin.getConfigManager().getMobBaseHealth(type);
+        double multiplier = plugin.getConfigManager().getHealthMultiplier();
+        double finalHealth = baseHp * multiplier;
+
+        setupMobHealthAndTarget(entity, finalHealth, null);
+        return entity;
     }
 
     /**
-     * Spawnuje pojedynczego bossa z domyślnym HP z configu.
+     * Stara metoda spawnBoss - teraz poprawnie korzysta z ConfigManagera.
      */
     public LivingEntity spawnBoss(Location location) {
-        double health = plugin.getConfigManager() != null ? plugin.getConfigManager().getBossHealth() : 100.0;
-        return spawnBoss(location, health);
-    }
-
-    /**
-     * Spawnuje pojedynczego bossa z podanym HP.
-     */
-    public LivingEntity spawnBoss(Location location, double health) {
-        if (location == null || location.getWorld() == null) return null;
-        
-        LivingEntity boss = (LivingEntity) location.getWorld().spawnEntity(location, EntityType.PILLAGER);
-        setupRaidMob(boss, health, null);
-        
-        return boss;
+        return spawnRaidMob(location, EntityType.PILLAGER);
     }
 
     /**
      * Ustawia HP z configu oraz nadaje natychmiastowe agro na gracza.
      */
-    public void setupRaidMob(LivingEntity entity, double configHealth, Player targetPlayer) {
+    public void setupMobHealthAndTarget(LivingEntity entity, double configHealth, Player targetPlayer) {
         if (entity == null || !entity.isValid()) return;
 
-        // Opóźnienie 1 tick, żeby silnik gry nie nadpisał naszego HP
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (entity != null && entity.isValid()) {
                 
-                // 1. Ustawienie HP
+                // 1. Ustawienie HP z configu
                 AttributeInstance maxHealthAttr = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
                 if (maxHealthAttr != null) {
                     maxHealthAttr.setBaseValue(configHealth);
