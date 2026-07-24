@@ -14,6 +14,9 @@ public final class BetterRaid extends JavaPlugin {
         this.bossManager = new BossManager(this);
         this.raidManager = new RaidManager(this);
 
+        // Rejestracja listenera, aby modyfikacje zdrowia i obrażeń mobów z rajdu działały poprawnie
+        getServer().getPluginManager().registerEvents(new RaidListener(this), this);
+
         if (getCommand("betterraid") != null) {
             BetterRaidCommand commandHandler = new BetterRaidCommand(this);
             getCommand("betterraid").setExecutor(commandHandler);

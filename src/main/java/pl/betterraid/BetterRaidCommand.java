@@ -32,7 +32,6 @@ public class BetterRaidCommand implements CommandExecutor, TabCompleter {
 
         if (args.length > 0 && args[0].equalsIgnoreCase("spawnboss")) {
             if (sender instanceof Player player) {
-                // Uruchamiamy falę 1 przez RaidManager, który poprawnie pobiera dane z configu
                 plugin.getRaidManager().startRaidWave(player, 1);
             } else {
                 sender.sendMessage("Tę komendę może wykonać tylko gracz.");
