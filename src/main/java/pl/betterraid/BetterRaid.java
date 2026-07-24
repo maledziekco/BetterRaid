@@ -1,40 +1,21 @@
-package pl.betterraid;
+private RaidManager raidManager;
+private BossManager bossManager;
+private ConfigManager configManager;
 
-import org.bukkit.plugin.java.JavaPlugin;
-import pl.betterraid.commands.BroadcastCommand;
+// W metodzie onEnable():
+this.configManager = new ConfigManager(this);
+this.bossManager = new BossManager(this);
+this.raidManager = new RaidManager(this);
 
-public final class BetterRaid extends JavaPlugin {
+// Dodaj też metody gettery w BetterRaid.java:
+public RaidManager getRaidManager() {
+    return raidManager;
+}
 
-    private ConfigManager configManager;
-    private BossManager bossManager;
+public BossManager getBossManager() {
+    return bossManager;
+}
 
-    @Override
-    public void onEnable() {
-        // Inicjalizacja menedżerów
-        this.configManager = new ConfigManager(this);
-        this.bossManager = new BossManager(this);
-
-        // Rejestracja komend
-        if (getCommand("ogloszenie") != null) {
-            getCommand("ogloszenie").setExecutor(new BroadcastCommand());
-        }
-        if (getCommand("betterraid") != null) {
-            getCommand("betterraid").setExecutor(new BetterRaidCommand(this));
-        }
-
-        getLogger().info("Plugin BetterRaid został pomyślnie uruchomiony!");
-    }
-
-    @Override
-    public void onDisable() {
-        getLogger().info("Plugin BetterRaid został wyłączony.");
-    }
-
-    public ConfigManager getConfigManager() {
-        return configManager;
-    }
-
-    public BossManager getBossManager() {
-        return bossManager;
-    }
+public ConfigManager getConfigManager() {
+    return configManager;
 }
