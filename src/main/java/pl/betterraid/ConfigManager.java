@@ -31,8 +31,6 @@ public class ConfigManager {
 
     public double getMobBaseHealth(EntityType type) {
         FileConfiguration config = plugin.getConfig();
-        // Poprawiona ścieżka - szukamy wewnątrz raid.mobs-base-hp lub bezpośrednio w mobs-base-hp
-        // Zależnie od tego, czy mobs-base-hp jest pod raid:, sprawdzamy obie możliwości dla pewności:
         String pathRaid = "raid.mobs-base-hp." + type.name();
         String pathRoot = "mobs-base-hp." + type.name();
         
