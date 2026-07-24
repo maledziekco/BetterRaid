@@ -1,5 +1,6 @@
 package pl.betterraid;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -52,9 +53,7 @@ public class RaidListener implements Listener {
                 default: maxWaves = badOmenLevel >= 5 ? 14 : 4; break;
             }
 
-            if (spawnedGroups > maxWaves) {
-                return;
-            }
+            if (spawnedGroups > maxWaves) return;
 
             @SuppressWarnings("unchecked")
             List<Raider> originalRaiders = new ArrayList<>((List<Raider>) raid.getClass().getMethod("getRaiders").invoke(raid));
@@ -148,27 +147,31 @@ public class RaidListener implements Listener {
     private void applyCustomizations(LivingEntity entity) {
         if (entity == null || !entity.isValid()) return;
 
-        double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
-        double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
-        double finalMaxHealth = baseHealth * globalMultiplier;
+        // Kluczowa zmiana: Opóźnienie o 1 tick, żeby silnik gry nie nadpisał naszego HP swoimi domyślnymi wartościami
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (entity == null || !entity.isValid() || entity.isDead()) return;
 
-        // Bezpieczne pobieranie atrybutu Max Health dla różnych wersji silnika
-        Attribute attrMaxHealth = null;
-        try {
-            attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
-        } catch (IllegalArgumentException e) {
+            double baseHealth = plugin.getConfigManager().getMobBaseHealth(entity.getType());
+            double globalMultiplier = plugin.getConfigManager().getHealthMultiplier();
+            double finalMaxHealth = baseHealth * globalMultiplier;
+
+            Attribute attrMaxHealth = null;
             try {
-                attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
-            } catch (IllegalArgumentException ignored) {}
-        }
-
-        if (attrMaxHealth != null) {
-            AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
-            if (maxHealthAttr != null) {
-                maxHealthAttr.setBaseValue(finalMaxHealth);
-                entity.setHealth(finalMaxHealth);
+                attrMaxHealth = Attribute.valueOf("MAX_HEALTH");
+            } catch (IllegalArgumentException e) {
+                try {
+                    attrMaxHealth = Attribute.valueOf("GENERIC_MAX_HEALTH");
+                } catch (IllegalArgumentException ignored) {}
             }
-        }
+
+            if (attrMaxHealth != null) {
+                AttributeInstance maxHealthAttr = entity.getAttribute(attrMaxHealth);
+                if (maxHealthAttr != null) {
+                    maxHealthAttr.setBaseValue(finalMaxHealth);
+                    entity.setHealth(finalMaxHealth);
+                }
+            }
+        }, 1L);
 
         entity.setCustomName(null);
         entity.setCustomNameVisible(false);
